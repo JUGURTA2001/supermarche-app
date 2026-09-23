@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane fx:id="rootPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity"
+            prefHeight="400.0" prefWidth="600.0" styleClass="AnchorPaneparincipale"
+            stylesheets="@../css/login.css"
+            xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.supermarche.frontend.controllers.LoginController">
+   <children>
+
+      <!-- Partie gauche : présentation -->
+      <AnchorPane layoutX="0.0" prefHeight="400.0" prefWidth="300.0" styleClass="AnchorPane">
+         <children>
+            <Label layoutX="80.0" layoutY="150.0" styleClass="Label" text="SUPERMARCHÉ">
+               <font><Font size="20.0" /></font>
+            </Label>
+            <Label layoutX="72.0" layoutY="200.0" styleClass="Label" text="Gestion complète">
+               <font><Font size="16.0" /></font>
+            </Label>
+            <Label layoutX="80.0" layoutY="230.0" styleClass="Label" text="Suivi des ventes">
+               <font><Font size="16.0" /></font>
+            </Label>
+         </children>
+      </AnchorPane>
+
+      <!-- Partie droite : formulaire de connexion -->
+      <AnchorPane layoutX="300.0" prefHeight="400.0" prefWidth="300.0">
+         <children>
+
+            <Button fx:id="btnclose" layoutX="261.0" layoutY="14.0" mnemonicParsing="false"
+                    onAction="#closeApp" prefHeight="25.0" prefWidth="25.0"
+                    text="X" textFill="RED" />
+
+            <Label layoutX="34.0" layoutY="40.0" styleClass="titre" text="Connexion">
+               <font><Font size="22.0" /></font>
+            </Label>
+            <Label layoutX="34.0" layoutY="75.0" styleClass="souslabel" text="Accédez à votre espace de gestion" />
+
+            <Label fx:id="ereur" layoutX="34.0" layoutY="98.0" prefHeight="20.0" prefWidth="230.0" styleClass="erreur">
+               <font><Font size="12.0" /></font>
+            </Label>
+
+            <Label layoutX="34.0" layoutY="128.0" styleClass="Label" text="Nom d'utilisateur" />
+            <TextField fx:id="email" layoutX="34.0" layoutY="150.0" prefHeight="32.0" prefWidth="230.0" promptText="Votre identifiant" />
+
+            <Label layoutX="34.0" layoutY="190.0" styleClass="Label" text="Mot de passe" />
+            <PasswordField fx:id="password" layoutX="34.0" layoutY="212.0" prefHeight="32.0" prefWidth="230.0" promptText="Votre mot de passe" />
+
+            <Button fx:id="btnlogin" layoutX="34.0" layoutY="260.0" mnemonicParsing="false"
+                    onAction="#handleLogin" prefHeight="35.0" prefWidth="230.0" text="SE CONNECTER" />
+
+            <Button fx:id="btnoblien" layoutX="34.0" layoutY="305.0" mnemonicParsing="false"
+                    onAction="#handleMotDePasseOublie" prefHeight="20.0" prefWidth="230.0" text="Mot de passe oublié ?" />
+
+         </children>
+      </AnchorPane>
+
+   </children>
+</AnchorPane>

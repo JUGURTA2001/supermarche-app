@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.chart.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane prefHeight="720.0" prefWidth="1143.0"
+            xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
+
+            styleClass="fond-degrade">
+
+   <children>
+      <VBox spacing="20" AnchorPane.topAnchor="20" AnchorPane.leftAnchor="30" AnchorPane.rightAnchor="30" AnchorPane.bottomAnchor="20">
+         <children>
+
+            <!-- En-tête -->
+            <HBox alignment="CENTER_LEFT" spacing="10">
+               <children>
+                  <Label fx:id="lblBonjour" text="Bonjour, Admin" styleClass="titre-accueil"/>
+                  <Region HBox.hgrow="ALWAYS"/>
+                  <Label fx:id="lblDateHeure" text="31/08/2026 - 14:32" styleClass="sous-titre"/>
+               </children>
+            </HBox>
+
+            <!-- Cartes statistiques -->
+            <HBox spacing="15">
+               <children>
+                  <VBox styleClass="carte-stat" spacing="5" HBox.hgrow="ALWAYS">
+                     <children>
+                        <Label text="Ventes du jour" styleClass="carte-label"/>
+                        <Label fx:id="lblVentesJour" text="0 DA" styleClass="carte-valeur"/>
+                     </children>
+                  </VBox>
+                  <VBox styleClass="carte-stat" spacing="5" HBox.hgrow="ALWAYS">
+                     <children>
+                        <Label text="Produits" styleClass="carte-label"/>
+                        <Label fx:id="lblNombreProduits" text="0" styleClass="carte-valeur"/>
+                     </children>
+                  </VBox>
+                  <VBox styleClass="carte-stat carte-warning" spacing="5" HBox.hgrow="ALWAYS">
+                     <children>
+                        <Label text="Stock bas" styleClass="carte-label"/>
+                        <Label fx:id="lblStockBas" text="0" styleClass="carte-valeur"/>
+                     </children>
+                  </VBox>
+                  <VBox styleClass="carte-stat carte-danger" spacing="5" HBox.hgrow="ALWAYS">
+                     <children>
+                        <Label text="Expirations proches" styleClass="carte-label"/>
+                        <Label fx:id="lblExpiration" text="0" styleClass="carte-valeur"/>
+                     </children>
+                  </VBox>
+               </children>
+            </HBox>
+
+            <!-- Graphique + panneau latéral -->
+            <HBox spacing="15" VBox.vgrow="ALWAYS">
+               <children>
+
+                  <!-- Graphique ventes -->
+                  <VBox styleClass="carte-panel" spacing="10" HBox.hgrow="ALWAYS" prefWidth="650">
+                     <children>
+                        <Label text="Ventes des 7 derniers jours" styleClass="panel-titre"/>
+                        <LineChart fx:id="chartVentes" prefHeight="250">
+                           <xAxis><CategoryAxis label="Jour" fx:id="axeX"/></xAxis>
+                           <yAxis><NumberAxis label="Montant (DA)" fx:id="axeY"/></yAxis>
+                        </LineChart>
+                     </children>
+                  </VBox>
+
+                  <!-- Notifications -->
+                  <VBox styleClass="carte-panel" spacing="10" prefWidth="350">
+                     <children>
+                        <Label text="Notifications récentes" styleClass="panel-titre"/>
+                        <ListView fx:id="listeNotifications" prefHeight="250"/>
+                     </children>
+                  </VBox>
+
+               </children>
+            </HBox>
+
+            <!-- Dernières ventes -->
+            <VBox styleClass="carte-panel" spacing="10">
+               <children>
+                  <Label text="Dernières ventes" styleClass="panel-titre"/>
+                  <TableView fx:id="tableVentes" prefHeight="180">
+                     <columns>
+                        <TableColumn fx:id="colVenteId" text="N°" prefWidth="60"/>
+                        <TableColumn fx:id="colVenteClient" text="Client" prefWidth="200"/>
+                        <TableColumn fx:id="colVenteMontant" text="Montant" prefWidth="150"/>
+                        <TableColumn fx:id="colVenteDate" text="Date" prefWidth="200"/>
+                     </columns>
+                  </TableView>
+               </children>
+            </VBox>
+
+         </children>
+      </VBox>
+   </children>
+</AnchorPane>

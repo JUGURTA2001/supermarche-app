@@ -1,0 +1,138 @@
+supermarche-app/
+│
+├── backend/                                    # Spring Boot (API REST)
+│   ├── src/
+│   │   ├── main/
+│   │   │   ├── java/com/supermarche/backend/
+│   │   │   │   │
+│   │   │   │   ├── BackendApplication.java     # Classe principale
+│   │   │   │   │
+│   │   │   │   ├── config/                     # Configuration
+│   │   │   │   │   ├── SecurityConfig.java      # Spring Security + JWT
+│   │   │   │   │   ├── CorsConfig.java          # Autoriser JavaFX à appeler l'API
+│   │   │   │   │   └── SwaggerConfig.java       # Documentation API (optionnel)
+│   │   │   │   │
+│   │   │   │   ├── model/                       # Entités JPA (tables BDD)
+│   │   │   │   │   ├── Produit.java
+│   │   │   │   │   ├── Categorie.java
+│   │   │   │   │   ├── Stock.java
+│   │   │   │   │   ├── Vente.java
+│   │   │   │   │   ├── LigneVente.java
+│   │   │   │   │   ├── Utilisateur.java
+│   │   │   │   │   ├── Fournisseur.java
+│   │   │   │   │   └── Role.java
+│   │   │   │   │
+│   │   │   │   ├── repository/                  # Accès base de données
+│   │   │   │   │   ├── ProduitRepository.java
+│   │   │   │   │   ├── CategorieRepository.java
+│   │   │   │   │   ├── StockRepository.java
+│   │   │   │   │   ├── VenteRepository.java
+│   │   │   │   │   ├── UtilisateurRepository.java
+│   │   │   │   │   └── FournisseurRepository.java
+│   │   │   │   │
+│   │   │   │   ├── service/                     # Logique métier
+│   │   │   │   │   ├── ProduitService.java
+│   │   │   │   │   ├── StockService.java
+│   │   │   │   │   ├── VenteService.java
+│   │   │   │   │   ├── UtilisateurService.java
+│   │   │   │   │   ├── RapportService.java
+│   │   │   │   │   └── AuthService.java
+│   │   │   │   │
+│   │   │   │   ├── controller/                  # Endpoints REST (API)
+│   │   │   │   │   ├── ProduitController.java
+│   │   │   │   │   ├── CategorieController.java
+│   │   │   │   │   ├── StockController.java
+│   │   │   │   │   ├── VenteController.java
+│   │   │   │   │   ├── UtilisateurController.java
+│   │   │   │   │   ├── RapportController.java
+│   │   │   │   │   └── AuthController.java
+│   │   │   │   │
+│   │   │   │   ├── dto/                         # Objets de transfert (échange API)
+│   │   │   │   │   ├── ProduitDTO.java
+│   │   │   │   │   ├── VenteDTO.java
+│   │   │   │   │   ├── LoginRequestDTO.java
+│   │   │   │   │   └── LoginResponseDTO.java
+│   │   │   │   │
+│   │   │   │   ├── exception/                   # Gestion des erreurs
+│   │   │   │   │   ├── GlobalExceptionHandler.java
+│   │   │   │   │   ├── ProduitNotFoundException.java
+│   │   │   │   │   └── StockInsuffisantException.java
+│   │   │   │   │
+│   │   │   │   └── security/                    # JWT
+│   │   │   │       ├── JwtUtil.java
+│   │   │   │       └── JwtFilter.java
+│   │   │   │
+│   │   │   └── resources/
+│   │   │       ├── application.properties        # Config BDD, port, etc.
+│   │   │       ├── application-docker.properties  # Config spéciale Docker
+│   │   │       └── data.sql                       # Données de test (optionnel)
+│   │   │
+│   │   └── test/                                # Tests unitaires
+│   │       └── java/com/supermarche/backend/
+│   │
+│   ├── Dockerfile                                # Construction image backend
+│   ├── pom.xml                                   # Dépendances Maven
+│   └── .dockerignore
+│
+├── frontend-javafx/                              # Application desktop JavaFX
+│   ├── src/
+│   │   ├── main/
+│   │   │   ├── java/com/supermarche/frontend/
+│   │   │   │   │
+│   │   │   │   ├── MainApp.java                  # Point d'entrée JavaFX
+│   │   │   │   │
+│   │   │   │   ├── controllers/                  # Contrôleurs des écrans
+│   │   │   │   │   ├── LoginController.java
+│   │   │   │   │   ├── MenuPrincipalController.java
+│   │   │   │   │   ├── ProduitController.java
+│   │   │   │   │   ├── CaisseController.java
+│   │   │   │   │   ├── StockController.java
+│   │   │   │   │   ├── RapportController.java
+│   │   │   │   │   └── UtilisateurController.java
+│   │   │   │   │
+│   │   │   │   ├── models/                       # Classes Java (miroir du backend)
+│   │   │   │   │   ├── Produit.java
+│   │   │   │   │   ├── Vente.java
+│   │   │   │   │   ├── Utilisateur.java
+│   │   │   │   │   └── Stock.java
+│   │   │   │   │
+│   │   │   │   ├── services/                     # Appels API (HTTP Client)
+│   │   │   │   │   ├── ApiClient.java             # Config de base (URL, headers)
+│   │   │   │   │   ├── ProduitService.java
+│   │   │   │   │   ├── VenteService.java
+│   │   │   │   │   ├── AuthService.java
+│   │   │   │   │   └── StockService.java
+│   │   │   │   │
+│   │   │   │   ├── utils/                        # Utilitaires
+│   │   │   │   │   ├── SessionManager.java        # Garder le token JWT connecté
+│   │   │   │   │   ├── AlertUtils.java            # Pop-ups d'erreur/succès
+│   │   │   │   │   └── SceneManager.java          # Changer d'écran facilement
+│   │   │   │   │
+│   │   │   │   └── Launcher.java                  # Pour compiler en .exe
+│   │   │   │
+│   │   │   └── resources/
+│   │   │       ├── views/                         # Fichiers FXML (interfaces)
+│   │   │       │   ├── login.fxml
+│   │   │       │   ├── menu-principal.fxml
+│   │   │       │   ├── produits.fxml
+│   │   │       │   ├── caisse.fxml
+│   │   │       │   ├── stock.fxml
+│   │   │       │   ├── rapports.fxml
+│   │   │       │   └── utilisateurs.fxml
+│   │   │       │
+│   │   │       ├── css/                           # Styles
+│   │   │       │   └── style.css
+│   │   │       │
+│   │   │       └── images/                        # Icônes, logo
+│   │   │           └── logo.png
+│   │   │
+│   │   └── test/
+│   │
+│   ├── pom.xml                                    # Dépendances Maven (JavaFX)
+│   └── module-info.java                           # Modules Java (si utilisé)
+│
+├── docker-compose.yml                             # Orchestration backend + BDD
+├── docker-compose.override.yml                    # Config locale (optionnel)
+├── .env                                           # Variables d'environnement
+├── .gitignore
+└── README.md                                      # Documentation du projet

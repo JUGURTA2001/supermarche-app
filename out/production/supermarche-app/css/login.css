@@ -1,0 +1,84 @@
+.AnchorPaneparincipale {
+    -fx-background-color: linear-gradient(to right, #2087db, #2e5172);
+    -fx-background-radius: 20px;
+}
+
+.AnchorPane {
+    -fx-background-color: transparent;
+}
+
+.Label {
+    -fx-text-fill: #ffffff;
+    -fx-font-family: "Segoe UI";
+}
+
+.titre {
+    -fx-text-fill: #ffffff;
+    -fx-font-weight: bold;
+}
+
+.souslabel {
+    -fx-text-fill: #d8e6f5;
+    -fx-font-size: 11px;
+}
+
+.erreur {
+    -fx-text-fill: #ff6b6b;
+    -fx-font-weight: bold;
+}
+
+/* Bouton fermeture */
+#btnclose {
+    -fx-background-color: transparent;
+    -fx-text-fill: #ff6b6b;
+    -fx-font-size: 15px;
+    -fx-padding: 0;
+    -fx-background-radius: 50%;
+}
+#btnclose:hover {
+    -fx-background-color: #ff4d4d;
+    -fx-text-fill: white;
+    -fx-background-radius: 50%;
+}
+
+/* Champs de saisie */
+#email, #password {
+    -fx-background-color: rgba(255, 255, 255, 0.15);
+    -fx-border-color: rgba(255, 255, 255, 0.4);
+    -fx-border-width: 1px;
+    -fx-border-radius: 6px;
+    -fx-background-radius: 6px;
+    -fx-text-fill: #ffffff;
+    -fx-font-weight: bold;
+    -fx-prompt-text-fill: rgba(255, 255, 255, 0.6);
+    -fx-padding: 6px 10px;
+}
+#email:focused, #password:focused {
+    -fx-border-color: #ffffff;
+    -fx-border-width: 2px;
+}
+
+/* Bouton connexion */
+#btnlogin {
+    -fx-background-color: #ffffff;
+    -fx-text-fill: #2087db;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-background-radius: 6px;
+    -fx-cursor: hand;
+}
+#btnlogin:hover {
+    -fx-background-color: #eaf3fc;
+}
+
+/* Lien mot de passe oublié */
+#btnoblien {
+    -fx-background-color: transparent;
+    -fx-text-fill: #d8e6f5;
+    -fx-font-size: 11px;
+    -fx-underline: true;
+    -fx-cursor: hand;
+}
+#btnoblien:hover {
+    -fx-text-fill: #ffffff;
+}
