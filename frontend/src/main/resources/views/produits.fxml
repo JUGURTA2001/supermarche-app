@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane xmlns="http://javafx.com/javafx/21"
+            xmlns:fx="http://javafx.com/fxml/1"
+            styleClass="root-pane"
+            stylesheets="@../css/produits.css"
+            fx:controller="com.supermarche.frontend.controllers.ProduitController">
+
+    <!-- ============================================== -->
+    <!-- UNE SEULE LIGNE : titre + onglets + recherche  -->
+    <!-- ============================================== -->
+    <top>
+        <HBox alignment="CENTER_LEFT" spacing="15" styleClass="topbar-header">
+
+            <!-- Titre -->
+            <Label text="📦" styleClass="brand-icon"/>
+            <Label text="GESTION DES PRODUITS" styleClass="brand-title"/>
+
+            <!-- Séparateur visuel -->
+            <Label text="│" styleClass="brand-separator"/>
+
+            <!-- Onglets du sous-menu -->
+            <Button fx:id="btnListe" text="📋  Liste"
+                    onAction="#afficherListe" styleClass="nav-btn, nav-btn-active"/>
+            <Button fx:id="btnAjouter" text="➕  Ajouter"
+                    onAction="#afficherAjout" styleClass="nav-btn"/>
+            <Button fx:id="btnNotifications" text="🔔  Notifications"
+                    onAction="#afficherNotifications" styleClass="nav-btn"/>
+            <Button fx:id="btnAlertes" text="⚠️  Alertes"
+                    onAction="#afficherAlertes" styleClass="nav-btn"/>
+
+            <!-- Pousse le reste à droite -->
+            <Region HBox.hgrow="ALWAYS"/>
+
+            <!-- Compteur produits -->
+            <Label fx:id="lblNbProduits" text="0 produit(s)" styleClass="info-pill"/>
+
+            <!-- Champ de recherche -->
+            <TextField fx:id="txtRecherche" promptText="🔍  Rechercher un produit..."
+                       prefWidth="220" styleClass="search-field"/>
+        </HBox>
+    </top>
+
+    <!-- ============================================== -->
+    <!-- ZONE DE CONTENU                                -->
+    <!-- ============================================== -->
+    <center>
+        <StackPane fx:id="contentArea" styleClass="content-area">
+
+            <!-- ========================================== -->
+            <!-- VUE 1 : LISTE DES PRODUITS                 -->
+            <!-- ========================================== -->
+            <VBox fx:id="vueListe" spacing="12" styleClass="view-pane">
+
+                <HBox alignment="CENTER_LEFT" spacing="10">
+                    <Label text="Liste des produits" styleClass="page-title"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Label fx:id="lblTotalProduits" text="Total : 0" styleClass="info-label"/>
+                    <Label fx:id="lblAlerteStock" text="Alertes : 0" styleClass="info-label-danger"/>
+                </HBox>
+
+                <TableView fx:id="tableProduits" VBox.vgrow="ALWAYS" styleClass="data-table">
+                    <columns>
+                        <TableColumn fx:id="colId" text="ID" prefWidth="50"/>
+                        <TableColumn fx:id="colNom" text="Nom" prefWidth="180"/>
+                        <TableColumn fx:id="colCodeBarre" text="Code-barre" prefWidth="130"/>
+                        <TableColumn fx:id="colPrixAchat" text="Prix achat" prefWidth="100"/>
+                        <TableColumn fx:id="colPrixVente" text="Prix vente" prefWidth="100"/>
+                        <TableColumn fx:id="colQuantite" text="Stock" prefWidth="80"/>
+                        <TableColumn fx:id="colStatut" text="Statut" prefWidth="110"/>
+                    </columns>
+                </TableView>
+
+                <HBox spacing="10" alignment="CENTER_LEFT">
+                    <Button text="✏️ Modifier" onAction="#handleModifier" styleClass="btn-warning"/>
+                    <Button text="🗑️ Supprimer" onAction="#handleSupprimer" styleClass="btn-danger"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Label fx:id="lblMessage" styleClass="message-label"/>
+                </HBox>
+
+            </VBox>
+
+            <!-- ========================================== -->
+            <!-- VUE 2 : AJOUTER UN PRODUIT                 -->
+            <!-- ========================================== -->
+            <VBox fx:id="vueAjout" spacing="12" styleClass="view-pane" visible="false" managed="false">
+
+                <Label text="Nouveau produit" styleClass="page-title"/>
+
+                <GridPane hgap="15" vgap="12" styleClass="form-grid">
+                    <columnConstraints>
+
+                    </columnConstraints>
+
+                    <Label text="Nom *" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                    <TextField fx:id="txtNom" promptText="Nom du produit" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+
+                    <Label text="Code-barre" GridPane.columnIndex="2" GridPane.rowIndex="0"/>
+                    <TextField fx:id="txtCodeBarre" promptText="Code-barre" GridPane.columnIndex="3" GridPane.rowIndex="0"/>
+
+                    <Label text="Prix d'achat *" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                    <TextField fx:id="txtPrixAchat" promptText="0.00" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+
+                    <Label text="Prix de vente *" GridPane.columnIndex="2" GridPane.rowIndex="1"/>
+                    <TextField fx:id="txtPrixVente" promptText="0.00" GridPane.columnIndex="3" GridPane.rowIndex="1"/>
+
+                    <Label text="Quantité stock *" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                    <TextField fx:id="txtQuantite" promptText="0" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+
+                    <Label text="Seuil d'alerte" GridPane.columnIndex="2" GridPane.rowIndex="2"/>
+                    <TextField fx:id="txtSeuilAlerte" promptText="10" GridPane.columnIndex="3" GridPane.rowIndex="2"/>
+
+                    <Label text="Catégorie" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
+                    <ComboBox fx:id="comboCategorie" promptText="Choisir une catégorie"
+                              maxWidth="Infinity" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+
+                    <Label text="Fournisseur" GridPane.columnIndex="2" GridPane.rowIndex="3"/>
+                    <ComboBox fx:id="comboFournisseur" promptText="Choisir un fournisseur"
+                              maxWidth="Infinity" GridPane.columnIndex="3" GridPane.rowIndex="3"/>
+
+                    <Label text="Date d'expiration" GridPane.columnIndex="0" GridPane.rowIndex="4"/>
+                    <DatePicker fx:id="dpExpiration" maxWidth="Infinity"
+                                GridPane.columnIndex="1" GridPane.rowIndex="4"/>
+
+                    <Label text="Unité" GridPane.columnIndex="2" GridPane.rowIndex="4"/>
+                    <ComboBox fx:id="comboUnite" promptText="kg / L / pièce"
+                              maxWidth="Infinity" GridPane.columnIndex="3" GridPane.rowIndex="4"/>
+                </GridPane>
+
+                <HBox spacing="10" alignment="CENTER_LEFT">
+                    <Button text="💾 Enregistrer" onAction="#handleEnregistrer" styleClass="btn-primary"/>
+                    <Button text="Annuler" onAction="#handleAnnuler" styleClass="btn-secondary"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Label fx:id="lblMessageAjout" styleClass="message-label"/>
+                </HBox>
+
+            </VBox>
+
+            <!-- ========================================== -->
+            <!-- VUE 3 : NOTIFICATIONS                      -->
+            <!-- ========================================== -->
+            <VBox fx:id="vueNotifications" spacing="12" styleClass="view-pane" visible="false" managed="false">
+
+                <Label text="🔔  Notifications" styleClass="page-title"/>
+
+                <TableView fx:id="tableNotifications" VBox.vgrow="ALWAYS" styleClass="data-table">
+                    <columns>
+                        <TableColumn fx:id="colNotifId" text="ID" prefWidth="50"/>
+                        <TableColumn fx:id="colNotifType" text="Type" prefWidth="130"/>
+                        <TableColumn fx:id="colNotifMessage" text="Message" prefWidth="400"/>
+                        <TableColumn fx:id="colNotifDate" text="Date" prefWidth="150"/>
+                        <TableColumn fx:id="colNotifStatut" text="Statut" prefWidth="100"/>
+                    </columns>
+                </TableView>
+
+                <HBox spacing="10">
+                    <Button text="Marquer tout comme lu" onAction="#marquerToutLu" styleClass="btn-secondary"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Label fx:id="lblMessageNotif" styleClass="message-label"/>
+                </HBox>
+
+            </VBox>
+
+            <!-- ========================================== -->
+            <!-- VUE 4 : ALERTES STOCK                      -->
+            <!-- ========================================== -->
+            <VBox fx:id="vueAlertes" spacing="12" styleClass="view-pane" visible="false" managed="false">
+
+                <Label text="⚠️  Alertes de stock" styleClass="page-title"/>
+
+                <TableView fx:id="tableAlertes" VBox.vgrow="ALWAYS" styleClass="data-table">
+                    <columns>
+                        <TableColumn fx:id="colAlerteId" text="ID" prefWidth="50"/>
+                        <TableColumn fx:id="colAlerteNom" text="Produit" prefWidth="200"/>
+                        <TableColumn fx:id="colAlerteStock" text="Stock actuel" prefWidth="120"/>
+                        <TableColumn fx:id="colAlerteSeuil" text="Seuil" prefWidth="100"/>
+                        <TableColumn fx:id="colAlerteNiveau" text="Niveau" prefWidth="130"/>
+                    </columns>
+                </TableView>
+
+                <Label text="Les produits en rouge nécessitent un réapprovisionnement."
+                       styleClass="info-label"/>
+
+            </VBox>
+
+        </StackPane>
+    </center>
+
+</BorderPane>

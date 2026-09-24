@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane xmlns="http://javafx.com/javafx/21"
+            xmlns:fx="http://javafx.com/fxml/1"
+            prefHeight="650.0" prefWidth="1100.0"
+            styleClass="root-pane"
+            stylesheets="@../css/admin.css"
+            fx:controller="com.supermarche.frontend.controllers.AdminController">
+
+   <!-- ============================================== -->
+   <!-- BARRE HORIZONTALE (NAVBAR) EN HAUT             -->
+   <!-- ============================================== -->
+   <top>
+      <VBox>
+
+         <!-- Ligne 1 : Logo + infos utilisateur -->
+         <HBox alignment="CENTER_LEFT" spacing="10" styleClass="topbar-header">
+            <Label text="🛒 SUPERMARCHÉ" styleClass="brand-title"/>
+            <Label text="Espace Admin" styleClass="brand-subtitle"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Label text="👤" styleClass="welcome-label"/>
+            <Label fx:id="lblUtilisateur" text="Admin" styleClass="username-label"/>
+            <Label fx:id="lblRole" text="Rôle : admin" styleClass="role-label"/>
+            <Button text="🚪 Déconnexion" onAction="#menuDeconnexion" styleClass="nav-btn-danger"/>
+         </HBox>
+
+         <!-- Ligne 2 : Navigation horizontale -->
+         <HBox alignment="CENTER_LEFT" spacing="4" styleClass="navbar">
+            <Button fx:id="btnAccueil" text="🏠  Accueil" onAction="#pageAccueil" styleClass="nav-btn, nav-btn-active"/>
+            <Button fx:id="btnProduits" text="📦  Produits" onAction="#pageProduits" styleClass="nav-btn"/>
+            <Button fx:id="btnVentes" text="🛒  Ventes" onAction="#pageVentes" styleClass="nav-btn"/>
+            <Button fx:id="btnStock" text="📊  Stock" onAction="#pageStock" styleClass="nav-btn"/>
+            <Button fx:id="btnStatistiques" text="📈  Statistiques" onAction="#pageStatistiques" styleClass="nav-btn"/>
+            <Button fx:id="btnNotifications" text="🔔  Notifications" onAction="#pageNotifications" styleClass="nav-btn"/>
+            <Button fx:id="btnFournisseurs" text="🚚  Fournisseurs" onAction="#pageFournisseurs" styleClass="nav-btn"/>
+            <Button fx:id="btnParametres" text="⚙️  Paramètres" onAction="#pageParametres" styleClass="nav-btn"/>
+         </HBox>
+
+      </VBox>
+   </top>
+
+   <!-- ============================================== -->
+   <!-- ZONE DE CONTENU PRINCIPAL                       -->
+   <!-- ============================================== -->
+   <center>
+      <BorderPane>
+         <top>
+            <HBox alignment="CENTER_LEFT" styleClass="welcome-banner">
+               <Label fx:id="lblPageTitre" text="Tableau de bord" styleClass="page-title"/>
+            </HBox>
+         </top>
+         <center>
+            <StackPane fx:id="contentArea" styleClass="content-area">
+               <Label text="Bienvenue sur le tableau de bord administrateur" styleClass="placeholder-text"/>
+            </StackPane>
+         </center>
+      </BorderPane>
+   </center>
+
+</BorderPane>

@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane prefHeight="720.0" prefWidth="1143.0" styleClass="fond-degrade" stylesheets="@../styles/parametre.css" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.controllers.ParametreController">
+
+   <!-- ===== BARRE DE MENU (identique aux autres pages) ===== -->
+   <top>
+      <HBox alignment="CENTER" spacing="60" styleClass="barre-menu">
+         <padding><Insets bottom="20" top="20" /></padding>
+         <children>
+            <VBox alignment="CENTER" onMouseClicked="#accueilpage" styleClass="menu-item">
+               <children>
+                  <ImageView fitHeight="40" fitWidth="40"><image><Image url="@../images/home.png" /></image></ImageView>
+                  <Label styleClass="menu-label" text="Accueil" />
+               </children>
+            </VBox>
+            <VBox alignment="CENTER" onMouseClicked="#cleintspage" styleClass="menu-item">
+               <children>
+                  <ImageView fitHeight="40" fitWidth="40"><image><Image url="@../images/vente.png" /></image></ImageView>
+                  <Label styleClass="menu-label" text="vente" />
+               </children>
+            </VBox>
+            <VBox alignment="CENTER" onMouseClicked="#produitspage" styleClass="menu-item">
+               <children>
+                  <ImageView fitHeight="40" fitWidth="40"><image><Image url="@../images/produits.png" /></image></ImageView>
+                  <Label styleClass="menu-label" text="Produits" />
+               </children>
+            </VBox>
+            <VBox alignment="CENTER" onMouseClicked="#bonpage" styleClass="menu-item">
+               <children>
+                  <ImageView fitHeight="40" fitWidth="40"><image><Image url="@../images/bon.png" /></image></ImageView>
+                  <Label styleClass="menu-label" text="BON" />
+               </children>
+            </VBox>
+            <VBox alignment="CENTER" onMouseClicked="#Statistiquespage" styleClass="menu-item">
+               <children>
+                  <ImageView fitHeight="40" fitWidth="40"><image><Image url="@../images/stat.png" /></image></ImageView>
+                  <Label styleClass="menu-label" text="Statistiques" />
+               </children>
+            </VBox>
+            <VBox alignment="CENTER" onMouseClicked="#stockpage" styleClass="menu-item">
+               <children>
+                  <ImageView fitHeight="40" fitWidth="40"><image><Image url="@../images/stock.png" /></image></ImageView>
+                  <Label styleClass="menu-label" text="Stock" />
+               </children>
+            </VBox>
+            <VBox alignment="CENTER" onMouseClicked="#notificationpage" styleClass="menu-item">
+               <children>
+                  <ImageView fitHeight="40" fitWidth="40"><image><Image url="@../images/bell.png" /></image></ImageView>
+                  <Label styleClass="menu-label" text="Notification" />
+               </children>
+            </VBox>
+            <VBox alignment="CENTER" onMouseClicked="#parametrespage" styleClass="menu-item">
+               <children>
+                  <ImageView fitHeight="40" fitWidth="40"><image><Image url="@../images/parametre.png" /></image></ImageView>
+                  <Label styleClass="menu-label" text="Paramètres" />
+               </children>
+            </VBox>
+         </children>
+      </HBox>
+   </top>
+
+   <!-- ===== CONTENU ===== -->
+   <center>
+      <TabPane styleClass="tabpane-parametres" tabClosingPolicy="UNAVAILABLE">
+         <tabs>
+
+            <!-- ========== ONGLET 1 : GESTION EMPLOYÉS ========== -->
+            <Tab text="Gestion des employés">
+               <content>
+                  <VBox spacing="15">
+                     <padding><Insets bottom="20" left="30" right="30" top="20" /></padding>
+                     <children>
+
+                        <Label styleClass="titre-page" text="Employés" />
+
+                        <!-- Formulaire ajout employé -->
+                        <VBox spacing="12" styleClass="carte-panel">
+                           <children>
+                              <Label styleClass="panel-titre" text="Ajouter un employé" />
+                              <GridPane hgap="15" vgap="10">
+                                 <columnConstraints>
+                                    <ColumnConstraints minWidth="120" />
+                                    <ColumnConstraints minWidth="220" />
+                                    <ColumnConstraints minWidth="120" />
+                                    <ColumnConstraints minWidth="220" />
+                                 </columnConstraints>
+                                 <children>
+                                    <Label text="Nom" GridPane.columnIndex="0" GridPane.rowIndex="0" />
+                                    <TextField fx:id="txtNom" GridPane.columnIndex="1" GridPane.rowIndex="0" />
+
+                                    <Label text="Prénom" GridPane.columnIndex="2" GridPane.rowIndex="0" />
+                                    <TextField fx:id="txtPrenom" GridPane.columnIndex="3" GridPane.rowIndex="0" />
+
+                                    <Label text="Email" GridPane.columnIndex="0" GridPane.rowIndex="1" />
+                                    <TextField fx:id="txtEmail" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+
+                                    <Label text="Téléphone" GridPane.columnIndex="2" GridPane.rowIndex="1" />
+                                    <TextField fx:id="txtTelephone" GridPane.columnIndex="3" GridPane.rowIndex="1" />
+
+                                    <Label text="Rôle" GridPane.columnIndex="0" GridPane.rowIndex="2" />
+                                    <ComboBox fx:id="comboRole" prefWidth="220" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+
+                                    <Label text="Mot de passe" GridPane.columnIndex="2" GridPane.rowIndex="2" />
+                                    <PasswordField fx:id="txtMotDePasse" GridPane.columnIndex="3" GridPane.rowIndex="2" />
+                                 </children>
+                                 <rowConstraints>
+                                    <RowConstraints />
+                                    <RowConstraints />
+                                    <RowConstraints />
+                                 </rowConstraints>
+                              </GridPane>
+                              <HBox alignment="CENTER_RIGHT" spacing="10">
+                                 <children>
+                                    <Label fx:id="lblMessageEmploye" styleClass="message-erreur" />
+                                    <Button onAction="#ajouterEmploye" styleClass="btn-principal" text="➕ Ajouter l'employé" />
+                                 </children>
+                              </HBox>
+                           </children>
+                        </VBox>
+
+                        <!-- Liste des employés -->
+                        <Label styleClass="panel-titre" text="Liste des employés" />
+                        <TableView fx:id="tableEmployes" prefHeight="280">
+                           <columns>
+                              <TableColumn fx:id="colEmpNom" prefWidth="130" text="Nom" />
+                              <TableColumn fx:id="colEmpPrenom" prefWidth="130" text="Prénom" />
+                              <TableColumn fx:id="colEmpEmail" prefWidth="220" text="Email" />
+                              <TableColumn fx:id="colEmpRole" prefWidth="120" text="Rôle" />
+                              <TableColumn fx:id="colEmpTel" prefWidth="130" text="Téléphone" />
+                              <TableColumn fx:id="colEmpActions" prefWidth="150" text="Actions" />
+                           </columns>
+                           <placeholder><Label text="Aucun employé" /></placeholder>
+                        </TableView>
+
+                     </children>
+                  </VBox>
+               </content>
+            </Tab>
+
+            <!-- ========== ONGLET 2 : MON COMPTE (mot de passe / email) ========== -->
+            <Tab text="Mon compte">
+               <content>
+                  <VBox spacing="25">
+                     <padding><Insets bottom="20" left="30" right="30" top="20" /></padding>
+                     <children>
+
+                        <Label styleClass="titre-page" text="Sécurité du compte" />
+
+                        <!-- Changer mot de passe -->
+                        <VBox maxWidth="500" spacing="12" styleClass="carte-panel">
+                           <children>
+                              <Label styleClass="panel-titre" text="🔒 Changer le mot de passe" />
+
+                              <Label text="Ancien mot de passe" />
+                              <PasswordField fx:id="txtAncienMdp" />
+
+                              <Label text="Nouveau mot de passe" />
+                              <PasswordField fx:id="txtNouveauMdp" />
+
+                              <Label text="Confirmer le nouveau mot de passe" />
+                              <PasswordField fx:id="txtConfirmerMdp" />
+
+                              <Label fx:id="lblMessageMdp" styleClass="message-erreur" />
+
+                              <Button onAction="#changerMotDePasse" styleClass="btn-principal" text="Mettre à jour le mot de passe" />
+                           </children>
+                        </VBox>
+
+                        <!-- Changer email -->
+                        <VBox maxWidth="500" spacing="12" styleClass="carte-panel">
+                           <children>
+                              <Label styleClass="panel-titre" text="✉️ Changer l'adresse email" />
+
+                              <Label text="Nouvel email" />
+                              <TextField fx:id="txtNouvelEmail" />
+
+                              <Label text="Mot de passe (confirmation)" />
+                              <PasswordField fx:id="txtMdpConfirmationEmail" />
+
+                              <Label fx:id="lblMessageEmail" styleClass="message-erreur" />
+
+                              <Button onAction="#changerEmail" styleClass="btn-principal" text="Mettre à jour l'email" />
+                           </children>
+                        </VBox>
+
+                     </children>
+                  </VBox>
+               </content>
+            </Tab>
+
+         </tabs>
+      </TabPane>
+   </center>
+</BorderPane>

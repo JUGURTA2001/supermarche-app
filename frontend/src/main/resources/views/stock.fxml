@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane prefHeight="800.0" prefWidth="1200.0" styleClass="fond-degrade"xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" >
+
+   <!-- ===== BARRE DE MENU ===== -->
+   <top>
+      <HBox alignment="CENTER" spacing="60" styleClass="barre-menu">
+         <padding><Insets bottom="20" top="20" /></padding>
+         <children>
+            <VBox alignment="CENTER" onMouseClicked="#accueilpage" styleClass="menu-item">
+               <children><ImageView fitHeight="40" fitWidth="40"><image><Image url="@../images/home.png" /></image></ImageView><Label styleClass="menu-label" text="Accueil" /></children>
+            </VBox>
+            <VBox alignment="CENTER" onMouseClicked="#cleintspage" styleClass="menu-item">
+               <children><ImageView fitHeight="40" fitWidth="40"><image><Image url="@../images/vente.png" /></image></ImageView><Label styleClass="menu-label" text="vente" /></children>
+            </VBox>
+            <VBox alignment="CENTER" onMouseClicked="#produitspage" styleClass="menu-item">
+               <children><ImageView fitHeight="40" fitWidth="40"><image><Image url="@../images/produits.png" /></image></ImageView><Label styleClass="menu-label" text="Produits" /></children>
+            </VBox>
+            <VBox alignment="CENTER" onMouseClicked="#bonpage" styleClass="menu-item">
+               <children><ImageView fitHeight="40" fitWidth="40"><image><Image url="@../images/bon.png" /></image></ImageView><Label styleClass="menu-label" text="BON" /></children>
+            </VBox>
+            <VBox alignment="CENTER" onMouseClicked="#Statistiquespage" styleClass="menu-item">
+               <children><ImageView fitHeight="40" fitWidth="40"><image><Image url="@../images/stat.png" /></image></ImageView><Label styleClass="menu-label" text="Statistiques" /></children>
+            </VBox>
+            <VBox alignment="CENTER" onMouseClicked="#stockpage" styleClass="menu-item">
+               <children><ImageView fitHeight="40" fitWidth="40"><image><Image url="@../images/stock.png" /></image></ImageView><Label styleClass="menu-label" text="Stock" /></children>
+            </VBox>
+            <VBox alignment="CENTER" onMouseClicked="#notificationpage" styleClass="menu-item">
+               <children><ImageView fitHeight="40" fitWidth="40"><image><Image url="@../images/bell.png" /></image></ImageView><Label styleClass="menu-label" text="Notification" /></children>
+            </VBox>
+            <VBox alignment="CENTER" onMouseClicked="#parametrespage" styleClass="menu-item">
+               <children><ImageView fitHeight="40" fitWidth="40"><image><Image url="@../images/parametre.png" /></image></ImageView><Label styleClass="menu-label" text="Paramètres" /></children>
+            </VBox>
+         </children>
+      </HBox>
+   </top>
+
+   <!-- ===== CONTENU ===== -->
+   <center>
+      <TabPane styleClass="tabpane-parametres" tabClosingPolicy="UNAVAILABLE">
+         <tabs>
+
+            <!-- ========== ONGLET 1 : ÉTAT DU STOCK ========== -->
+            <Tab text="État du stock">
+               <content>
+                  <VBox spacing="15">
+                     <padding><Insets bottom="20" left="30" right="30" top="20" /></padding>
+                     <children>
+
+                        <Label styleClass="titre-page" text="Gestion du stock" />
+
+                        <!-- Cartes résumé -->
+                        <HBox spacing="15">
+                           <children>
+                              <VBox spacing="5" styleClass="carte-stat" HBox.hgrow="ALWAYS">
+                                 <children><Label styleClass="carte-label" text="Produits en stock" /><Label fx:id="lblTotalProduits" styleClass="carte-valeur" text="0" /></children>
+                              </VBox>
+                              <VBox spacing="5" styleClass="carte-stat" HBox.hgrow="ALWAYS">
+                                 <children><Label styleClass="carte-label" text="Valeur du stock" /><Label fx:id="lblValeurStock" styleClass="carte-valeur" text="0 DA" /></children>
+                              </VBox>
+                              <VBox spacing="5" styleClass="carte-stat carte-warning" HBox.hgrow="ALWAYS">
+                                 <children><Label styleClass="carte-label" text="Stock faible" /><Label fx:id="lblAlerteStock" styleClass="carte-valeur" text="0" /></children>
+                              </VBox>
+                              <VBox spacing="5" styleClass="carte-stat carte-danger" HBox.hgrow="ALWAYS">
+                                 <children><Label styleClass="carte-label" text="Ruptures de stock" /><Label fx:id="lblRuptureStock" styleClass="carte-valeur" text="0" /></children>
+                              </VBox>
+                           </children>
+                        </HBox>
+
+                        <!-- Recherche + filtre -->
+                        <HBox alignment="CENTER_LEFT" spacing="10">
+                           <children>
+                              <TextField fx:id="txtRecherche" prefWidth="280" promptText="Rechercher un produit..." />
+                              <ComboBox fx:id="comboCategorieFiltre" prefWidth="200" promptText="Toutes les catégories" />
+                              <Button onAction="#rechercherStock" text="🔍 Rechercher" />
+                              <Button onAction="#reinitialiserFiltres" text="↻ Réinitialiser" />
+                              <Region HBox.hgrow="ALWAYS" />
+                              <Button onAction="#ouvrirAjustement" styleClass="btn-principal" text="➕ Ajuster le stock" />
+                           </children>
+                        </HBox>
+
+                        <!-- Table du stock -->
+                        <TableView fx:id="tableStock" prefHeight="400" VBox.vgrow="ALWAYS">
+                           <columns>
+                              <TableColumn fx:id="colStockNom" prefWidth="250" text="Produit" />
+                              <TableColumn fx:id="colStockCategorie" prefWidth="150" text="Catégorie" />
+                              <TableColumn fx:id="colStockQuantite" prefWidth="100" text="Quantité" />
+                              <TableColumn fx:id="colStockSeuil" prefWidth="110" text="Seuil alerte" />
+                              <TableColumn fx:id="colStockPrix" prefWidth="110" text="Prix unitaire" />
+                              <TableColumn fx:id="colStockStatut" prefWidth="120" text="Statut" />
+                              <TableColumn fx:id="colStockActions" prefWidth="150" text="Actions" />
+                           </columns>
+                           <placeholder><Label text="Aucun produit trouvé" /></placeholder>
+                        </TableView>
+
+                     </children>
+                  </VBox>
+               </content>
+            </Tab>
+
+            <!-- ========== ONGLET 2 : HISTORIQUE DES MOUVEMENTS ========== -->
+            <Tab text="Historique des mouvements">
+               <content>
+                  <VBox spacing="15">
+                     <padding><Insets bottom="20" left="30" right="30" top="20" /></padding>
+                     <children>
+                        <Label styleClass="titre-page" text="Historique des mouvements de stock" />
+                        <Button maxWidth="180" onAction="#chargerMouvements" text="↻ Actualiser" />
+
+                        <TableView fx:id="tableMouvements" prefHeight="450" VBox.vgrow="ALWAYS">
+                           <columns>
+                              <TableColumn fx:id="colMvtDate" prefWidth="160" text="Date" />
+                              <TableColumn fx:id="colMvtProduit" prefWidth="220" text="Produit" />
+                              <TableColumn fx:id="colMvtType" prefWidth="100" text="Type" />
+                              <TableColumn fx:id="colMvtQuantite" prefWidth="100" text="Quantité" />
+                              <TableColumn fx:id="colMvtAncienne" prefWidth="90" text="Avant" />
+                              <TableColumn fx:id="colMvtNouvelle" prefWidth="90" text="Après" />
+                              <TableColumn fx:id="colMvtRaison" prefWidth="220" text="Raison" />
+                           </columns>
+                           <placeholder><Label text="Aucun mouvement enregistré" /></placeholder>
+                        </TableView>
+                     </children>
+                  </VBox>
+               </content>
+            </Tab>
+
+         </tabs>
+      </TabPane>
+   </center>
+</BorderPane>

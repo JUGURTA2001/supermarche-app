@@ -1,0 +1,322 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.String?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.RadioButton?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ToggleGroup?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<AnchorPane fx:id="rootPane" prefHeight="900.0" prefWidth="1200.0"  xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" >
+
+    <children>
+        <!-- ========== PANEL LISTE ========== -->
+        <AnchorPane fx:id="listPane" prefHeight="900.0" prefWidth="1200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+            <children>
+                <VBox prefHeight="80.0" prefWidth="1200.0" styleClass="header" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                    <children>
+                        <Label styleClass="title-label" text="GESTION DES VENTES" />
+                        <Label styleClass="subtitle-label" text="Historique des transactions" />
+                    </children>
+                </VBox>
+
+                <VBox layoutY="80.0" spacing="12.0" styleClass="content-pane" AnchorPane.bottomAnchor="70.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="80.0">
+                    <padding><Insets bottom="15.0" left="20.0" right="20.0" top="15.0" /></padding>
+
+                    <!-- ===== FILTRE DATE + ALERTES ===== -->
+                    <HBox spacing="10.0" styleClass="search-box">
+                        <children>
+                            <DatePicker fx:id="dpFiltreDate" promptText="Filtrer par date" />
+                            <Button fx:id="btnResetDate" mnemonicParsing="false" text="Tout afficher" />
+                            <Region HBox.hgrow="ALWAYS" />
+                            <Label fx:id="lblTotalVentes1" styleClass="stat-label" text="Expiration : 0" />
+                            <Button fx:id="btnExpiration" mnemonicParsing="false" text="Voir" />
+                            <Label fx:id="lblNbVentes1" styleClass="stat-label" text="Alerte stock : 0" />
+                            <Button fx:id="btnAlerteStock" mnemonicParsing="false" text="Voir" />
+                        </children>
+                    </HBox>
+
+                    <!-- ===== RECHERCHE + STATS ===== -->
+                    <HBox spacing="10.0" styleClass="search-box">
+                        <children>
+                            <TextField fx:id="searchField" promptText="Rechercher une vente..." styleClass="search-field" HBox.hgrow="ALWAYS" />
+                            <Button fx:id="btnSearch" styleClass="btn-search" text="🔍 Rechercher" />
+                            <Region HBox.hgrow="ALWAYS" />
+                            <Label fx:id="lblTotalVentes" styleClass="stat-label" text="Total : 0,00 DA" />
+                            <Label fx:id="lblNbVentes" styleClass="stat-label" text="Ventes : 0" />
+                            <Label fx:id="lblTotalVentes2" styleClass="stat-label" text="Non réglé : 0,00 DA" />
+                        </children>
+                    </HBox>
+
+                    <!-- ===== TABLEAU DES VENTES ===== -->
+                    <TableView fx:id="tableVentes" prefHeight="300.0" styleClass="sales-table" VBox.vgrow="ALWAYS">
+                        <columns>
+                            <TableColumn fx:id="colNum" prefWidth="80.0" text="N°" />
+                            <TableColumn fx:id="colClient" prefWidth="120.0" text="Client" />
+                            <TableColumn fx:id="colDate" prefWidth="110.0" text="Date" />
+                            <TableColumn fx:id="colStatut" prefWidth="90.0" text="Statut" />
+                            <TableColumn fx:id="colRemise" prefWidth="90.0" text="Remise" />
+                            <TableColumn fx:id="colMontant" prefWidth="100.0" text="Montant" />
+                            <TableColumn fx:id="colReste" prefWidth="90.0" text="Reste" />
+                            <TableColumn fx:id="colRole" prefWidth="110.0" text="Employé" />
+                            <TableColumn fx:id="colActions" prefWidth="140.0" text="Actions" />
+                        </columns>
+                    </TableView>
+
+                    <!-- ===== MINI TABLEAU DÉTAIL DE LA VENTE SÉLECTIONNÉE ===== -->
+                    <Label styleClass="panel-title" text="Détail de la vente sélectionnée" />
+                    <TableView fx:id="tableDetailVente" prefHeight="160.0">
+                        <columns>
+                            <TableColumn fx:id="colDetailProduit" prefWidth="260.0" text="Produit" />
+                            <TableColumn fx:id="colDetailQte" prefWidth="70.0" text="Qté" />
+                            <TableColumn fx:id="colDetailPU" prefWidth="90.0" text="P.U" />
+                            <TableColumn fx:id="colDetailRemise" prefWidth="90.0" text="Remise %" />
+                            <TableColumn fx:id="colDetailTotal" prefWidth="110.0" text="Total ligne" />
+                        </columns>
+                    </TableView>
+                </VBox>
+
+                <HBox styleClass="footer" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
+                    <padding><Insets bottom="12.0" left="20.0" right="20.0" top="12.0" /></padding>
+                    <children>
+                        <Button fx:id="btnAddVente" onAction="#vente" styleClass="btn-add" text="➕ Ajouter Vente" />
+                        <Button fx:id="btnImprimer" styleClass="btn-print" text="🖨️ Imprimer" />
+                        <Button fx:id="btnDetails" styleClass="btn-details" text="Régler vente" />
+                        <Button fx:id="btnModifier" styleClass="btn-edit" text="✏️ Modifier" />
+                        <Button fx:id="btnSupprimer" styleClass="btn-delete" text="🗑️ Supprimer" />
+                  <Button fx:id="quitte" onAction="#quittepage" styleClass="btn-delete" text="quitte" />
+                        <Region HBox.hgrow="ALWAYS" />
+                        <Button fx:id="btnExporter" styleClass="btn-export" text="💾 Exporter" />
+                    </children>
+                </HBox>
+            </children>
+        </AnchorPane>
+
+        <!-- ========== PANEL NOUVELLE VENTE ========== -->
+        <AnchorPane fx:id="newVentePane" prefHeight="900.0" prefWidth="1200.0" visible="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+            <children>
+                <VBox AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+
+                    <!-- ===== INFO-BOX ===== -->
+                    <HBox fx:id="infoBox" prefHeight="100.0" spacing="20.0" styleClass="info-box" VBox.vgrow="NEVER">
+                        <children>
+                            <Button fx:id="parament" mnemonicParsing="false" onAction="#afficheinterface" text="Button" />
+                            <VBox alignment="CENTER_LEFT" prefHeight="79.0" prefWidth="289.0" spacing="3.0">
+                                <HBox prefHeight="49.0" prefWidth="281.0">
+                                    <children>
+                                        <Label styleClass="panel-title" text="📦 Sélectionner un produit" />
+                                        <Button fx:id="afficheproduit" mnemonicParsing="false" onAction="#affichescri" prefHeight="25.0" prefWidth="69.0" text="&gt;" />
+                                    </children>
+                                </HBox>
+                            </VBox>
+                            <VBox maxWidth="150.0" minWidth="0.0" prefHeight="79.0" prefWidth="0.0" spacing="3.0" HBox.hgrow="ALWAYS">
+                                <Label styleClass="label-title" text="N° Vente" />
+                                <Label fx:id="lblNumVente" styleClass="label-value" text="0000" />
+                            </VBox>
+                            <VBox maxWidth="150.0" prefHeight="79.0" prefWidth="0.0" spacing="3.0" HBox.hgrow="ALWAYS">
+                                <Label styleClass="label-title" text="Date" />
+                                <Label fx:id="lblDate" styleClass="label-value" text="01/01/2025" />
+                                <Label fx:id="lblhours" styleClass="label-value" text="01/01/2025" />
+                            </VBox>
+                            <VBox maxWidth="150.0" spacing="3.0" HBox.hgrow="ALWAYS">
+                                <children>
+                                    <VBox alignment="CENTER_LEFT" minWidth="150.0" spacing="3.0">
+                                        <Label styleClass="label-title" text="Réglé" />
+                                        <HBox spacing="10.0">
+                                            <RadioButton fx:id="rbRegleOui" text="Oui">
+                                                <toggleGroup>
+                                                    <ToggleGroup fx:id="regleGroup" />
+                                                </toggleGroup>
+                                            </RadioButton>
+                                            <RadioButton fx:id="rbRegleNon" selected="true" text="Non" toggleGroup="$regleGroup" />
+                                        </HBox>
+                                        <TextField fx:id="regle" />
+                                    </VBox>
+                                </children>
+                            </VBox>
+                            <VBox alignment="CENTER" fillWidth="false" minWidth="200.0" prefHeight="82.0" prefWidth="333.0" styleClass="total-box">
+                                <HBox prefHeight="100.0" prefWidth="200.0">
+                                    <children>
+                                        <VBox prefHeight="200.0" prefWidth="100.0">
+                                            <children>
+                                                <Label styleClass="total-label" text="TOTAL" />
+                                                <Label fx:id="lblTotal" styleClass="total-value" text="0,00 da" />
+                                            </children>
+                                        </VBox>
+                                    </children>
+                                </HBox>
+                                <Label fx:id="lblReste" styleClass="rest-value" text="Reste : 0,00 da" />
+                                <HBox.margin><Insets /></HBox.margin>
+                            </VBox>
+                        </children>
+                        <padding><Insets bottom="10.0" left="20.0" right="20.0" top="10.0" /></padding>
+                    </HBox>
+
+                    <!-- ===== ZONE PRINCIPALE ===== -->
+                    <BorderPane VBox.vgrow="ALWAYS">
+                        <left>
+                            <VBox fx:id="leftPanel" prefWidth="388.0" spacing="10.0" styleClass="left-panel" visible="false">
+                                <children>
+                                    <ScrollPane fitToHeight="true" hbarPolicy="AS_NEEDED" prefWidth="360" style="-fx-background: transparent; -fx-background-color: transparent;" vbarPolicy="NEVER">
+                                        <content>
+                                            <HBox fx:id="aaffichecategory" prefHeight="35.0" spacing="5.0" />
+                                        </content>
+                                    </ScrollPane>
+                                    <ScrollPane fitToWidth="true" hbarPolicy="NEVER" prefHeight="350" prefWidth="360" style="-fx-background: transparent; -fx-background-color: transparent;" vbarPolicy="AS_NEEDED">
+                                        <content>
+                                            <FlowPane fx:id="produitPane" hgap="10" prefWrapLength="340" vgap="10" />
+                                        </content>
+                                    </ScrollPane>
+                                </children>
+                                <padding><Insets bottom="12.0" left="12.0" right="12.0" top="12.0" /></padding>
+                            </VBox>
+                        </left>
+
+                        <center>
+                            <VBox fx:id="vbox" spacing="12.0" styleClass="center-panel">
+                                <children>
+                                    <HBox fx:id="infocodebar" spacing="8.0" styleClass="input-section" VBox.vgrow="NEVER">
+                                        <ComboBox fx:id="comboxchoisecode" prefHeight="24.0" prefWidth="97.0" promptText="Code barre" styleClass="combo-field" />
+                                        <ComboBox fx:id="comboRechercheProduit" promptText="Tapez le code, nom ou code-barres..." />
+                                        <ComboBox fx:id="type" prefHeight="24.0" prefWidth="98.0" promptText="Type" styleClass="combo-field" />
+                                        <TextField fx:id="tfRemise" prefWidth="80.0" promptText="Remise %" styleClass="input-field" />
+                                        <Button fx:id="drive" mnemonicParsing="false" onAction="#handleDriveButton" text="Drive" />
+                                        <Label styleClass="label-title" text="Versement :" />
+                                        <TextField fx:id="tfVersement" prefWidth="100.0" promptText="0,00" styleClass="input-field" />
+                                    </HBox>
+
+                                    <TableView fx:id="tableArticles" style="-fx-background-color: white; -fx-border-color: red;" VBox.vgrow="ALWAYS">
+                                        <columns>
+                                            <TableColumn fx:id="colnome" prefWidth="50.0" text="nom" />
+                                            <TableColumn fx:id="colDesignation" prefWidth="300.0" text="Désignation" />
+                                            <TableColumn fx:id="colPU" prefWidth="80.0" text="P.U " />
+                                            <TableColumn fx:id="colCode" prefWidth="70.0" text="Code" />
+                                            <TableColumn fx:id="colQte" prefWidth="60.0" text="Qté" />
+                                            <TableColumn fx:id="colMontantArt" prefWidth="228.0" text="Montant " />
+                                        </columns>
+                                        <styleClass>
+                                            <String fx:value="table-articles" />
+                                            <String fx:value="column-header-background:red" />
+                                        </styleClass>
+                                    </TableView>
+
+                                    <HBox alignment="CENTER" maxWidth="792.0" prefHeight="65.0" prefWidth="792.0" spacing="20.0" styleClass="footer-buttons" VBox.vgrow="NEVER">
+                                        <children>
+                                            <Button fx:id="btnEnregistrer" onAction="#EnregistrerVentre" styleClass="btn-success" text="✓ Enregistrer" />
+                                            <Button fx:id="btnImprimerBon" styleClass="btn-info" text="🖨️ Imprimer Bon" />
+                                            <Button fx:id="btnImprimerBon1" style="-fx-background-color: red;" styleClass="btn-info" text="Supprimer ligne" />
+                                            <Button fx:id="btnAnnuler" onAction="#vente2" styleClass="btn-danger" text="✕ Annuler" />
+                                        </children>
+                                        <padding><Insets bottom="12.0" left="20.0" right="20.0" top="12.0" /></padding>
+                                    </HBox>
+                                </children>
+                                <padding><Insets bottom="12.0" left="12.0" right="12.0" top="12.0" /></padding>
+                            </VBox>
+                        </center>
+                    </BorderPane>
+                </VBox>
+            </children>
+        </AnchorPane>
+
+        <!-- ===== INTERFACE CATÉGORIES ===== -->
+        <AnchorPane fx:id="interfce" layoutX="209.0" layoutY="163.0" prefHeight="355.0" prefWidth="427.0" visible="false" AnchorPane.bottomAnchor="200.0" AnchorPane.leftAnchor="200.0" AnchorPane.rightAnchor="200.0" AnchorPane.topAnchor="200.0">
+            <children>
+                <VBox prefHeight="354.0" prefWidth="804.0">
+                    <children>
+                        <Label fx:id="test1" alignment="CENTER" contentDisplay="CENTER" prefHeight="18.0" prefWidth="817.0" text="Gestion category " />
+                        <HBox prefHeight="100.0" prefWidth="200.0">
+                            <children>
+                                <Label text="ajoute gategory" />
+                                <TextField fx:id="nmcategory" promptText="nome category" />
+                                <Button fx:id="btnajoutecategory" mnemonicParsing="false" onAction="#ajoutecategory" text="ajoute category" />
+                            </children>
+                        </HBox>
+                        <TableView fx:id="tablcategory" prefHeight="336.0" prefWidth="804.0">
+                            <columns>
+                                <TableColumn fx:id="colcategoory" prefWidth="393.0" text="Category" />
+                                <TableColumn fx:id="colproduit" prefWidth="336.0" text="produit" />
+                            </columns>
+                        </TableView>
+                        <HBox fx:id="affiche" prefHeight="100.0" prefWidth="200.0">
+                            <children>
+                                <Label text="selction produit " />
+                                <ComboBox fx:id="selctionproduitCategorie" editable="true" prefWidth="150.0" />
+                            </children>
+                        </HBox>
+                        <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0">
+                            <children>
+                                <Button fx:id="btnajouteprodutcategory" contentDisplay="CENTER" mnemonicParsing="false" onAction="#ajouteprodutcategory" text="ajouteproduit acategory" />
+                                <Button fx:id="btnmodofer" mnemonicParsing="false" onAction="#update" text="modifier" />
+                                <Button fx:id="btnsupreme" mnemonicParsing="false" onAction="#supremme" text="suppremme" />
+                                <Button fx:id="btnModifierCategorie" mnemonicParsing="false" onAction="#modifierCategorie" text="Button" />
+                                <Button fx:id="quitte" mnemonicParsing="false" onAction="#quitteinterfce" text="Button" />
+                            </children>
+                        </HBox>
+                    </children>
+                </VBox>
+            </children>
+        </AnchorPane>
+      <!-- ===== INTERFACE EXPIRATION ===== -->
+      <AnchorPane fx:id="expiration" layoutX="144.0" layoutY="94.0" prefHeight="744.0" prefWidth="916.0" visible="false" managed="false" styleClass="content-pane" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+          <children>
+              <VBox spacing="12.0" AnchorPane.topAnchor="20.0" AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0" AnchorPane.bottomAnchor="20.0">
+                  <children>
+                      <Label styleClass="title-label" text="⏰ Produits proches de la péremption" />
+                      <TableView fx:id="tableExpiration" VBox.vgrow="ALWAYS">
+                          <columns>
+                              <TableColumn fx:id="colExpNom" prefWidth="180.0" text="Nom" />
+                              <TableColumn fx:id="colExpDesignation" prefWidth="260.0" text="Désignation" />
+                              <TableColumn fx:id="colExpDate" prefWidth="150.0" text="Date péremption" />
+                              <TableColumn fx:id="colExpJours" prefWidth="130.0" text="Jours restants" />
+                              <TableColumn fx:id="colExpStock" prefWidth="110.0" text="Stock" />
+                          </columns>
+                      </TableView>
+                      <HBox alignment="CENTER_RIGHT" spacing="10.0">
+                          <children>
+                              <Button fx:id="btnModifierExpiration" mnemonicParsing="false" onAction="#modifierExpiration" styleClass="btn-edit" text="✏️ Modifier" />
+                              <Button fx:id="btnAnnulerExpiration" mnemonicParsing="false" onAction="#fermerExpiration" styleClass="btn-danger" text="✕ Annuler" />
+                          </children>
+                      </HBox>
+                  </children>
+              </VBox>
+          </children>
+      </AnchorPane>
+
+      <!-- ===== INTERFACE ALERTE STOCK ===== -->
+      <AnchorPane fx:id="alertestock" layoutX="78.0" layoutY="150.0" prefHeight="630.0" prefWidth="938.0" visible="false" managed="false" styleClass="content-pane" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+          <children>
+              <VBox spacing="12.0" AnchorPane.topAnchor="20.0" AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0" AnchorPane.bottomAnchor="20.0">
+                  <children>
+                      <Label styleClass="title-label" text="📉 Produits en alerte de stock" />
+                      <TableView fx:id="tableAlerteStock" VBox.vgrow="ALWAYS">
+                          <columns>
+                              <TableColumn fx:id="colAlerteNom" prefWidth="200.0" text="Nom" />
+                              <TableColumn fx:id="colAlerteDesignation" prefWidth="280.0" text="Désignation" />
+                              <TableColumn fx:id="colAlerteStockQte" prefWidth="160.0" text="Stock actuel" />
+                              <TableColumn fx:id="colAlerteSeuil" prefWidth="160.0" text="Seuil d'alerte" />
+                          </columns>
+                      </TableView>
+                      <HBox alignment="CENTER_RIGHT" spacing="10.0">
+                          <children>
+                              <Button fx:id="btnModifierAlerteStock" mnemonicParsing="false" onAction="#modifierAlerteStock" styleClass="btn-edit" text="✏️ Modifier" />
+                              <Button fx:id="btnAnnulerAlerteStock" mnemonicParsing="false" onAction="#fermerAlerteStock" styleClass="btn-danger" text="✕ Annuler" />
+                          </children>
+                      </HBox>
+                  </children>
+              </VBox>
+          </children>
+      </AnchorPane>
+    </children>
+</AnchorPane>

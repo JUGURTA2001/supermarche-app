@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.chart.BarChart?>
+<?import javafx.scene.chart.CategoryAxis?>
+<?import javafx.scene.chart.LineChart?>
+<?import javafx.scene.chart.NumberAxis?>
+<?import javafx.scene.chart.PieChart?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane prefHeight="800.0" prefWidth="1200.0" styleClass="fond-degrade" stylesheets="@../styles/statistique.css" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.controllers.StatistiqueController">
+
+   <!-- ===== BARRE DE MENU ===== -->
+   <top>
+      <HBox alignment="CENTER" spacing="60" styleClass="barre-menu">
+         <padding><Insets bottom="20" top="20" /></padding>
+         <children>
+            <VBox alignment="CENTER" onMouseClicked="#accueilpage" styleClass="menu-item">
+               <children><ImageView fitHeight="40" fitWidth="40"><image><Image url="@../images/home.png" /></image></ImageView><Label styleClass="menu-label" text="Accueil" /></children>
+            </VBox>
+            <VBox alignment="CENTER" onMouseClicked="#cleintspage" styleClass="menu-item">
+               <children><ImageView fitHeight="40" fitWidth="40"><image><Image url="@../images/vente.png" /></image></ImageView><Label styleClass="menu-label" text="vente" /></children>
+            </VBox>
+            <VBox alignment="CENTER" onMouseClicked="#produitspage" styleClass="menu-item">
+               <children><ImageView fitHeight="40" fitWidth="40"><image><Image url="@../images/produits.png" /></image></ImageView><Label styleClass="menu-label" text="Produits" /></children>
+            </VBox>
+            <VBox alignment="CENTER" onMouseClicked="#bonpage" styleClass="menu-item">
+               <children><ImageView fitHeight="40" fitWidth="40"><image><Image url="@../images/bon.png" /></image></ImageView><Label styleClass="menu-label" text="BON" /></children>
+            </VBox>
+            <VBox alignment="CENTER" onMouseClicked="#Statistiquespage" styleClass="menu-item">
+               <children><ImageView fitHeight="40" fitWidth="40"><image><Image url="@../images/stat.png" /></image></ImageView><Label styleClass="menu-label" text="Statistiques" /></children>
+            </VBox>
+            <VBox alignment="CENTER" onMouseClicked="#stockpage" styleClass="menu-item">
+               <children><ImageView fitHeight="40" fitWidth="40"><image><Image url="@../images/stock.png" /></image></ImageView><Label styleClass="menu-label" text="Stock" /></children>
+            </VBox>
+            <VBox alignment="CENTER" onMouseClicked="#notificationpage" styleClass="menu-item">
+               <children><ImageView fitHeight="40" fitWidth="40"><image><Image url="@../images/bell.png" /></image></ImageView><Label styleClass="menu-label" text="Notification" /></children>
+            </VBox>
+            <VBox alignment="CENTER" onMouseClicked="#parametrespage" styleClass="menu-item">
+               <children><ImageView fitHeight="40" fitWidth="40"><image><Image url="@../images/parametre.png" /></image></ImageView><Label styleClass="menu-label" text="Paramètres" /></children>
+            </VBox>
+         </children>
+      </HBox>
+   </top>
+
+   <!-- ===== CONTENU ===== -->
+   <center>
+      <ScrollPane fitToWidth="true" styleClass="scroll-transparent">
+         <content>
+            <VBox spacing="20">
+               <padding><Insets bottom="30" left="30" right="30" top="20" /></padding>
+               <children>
+
+                  <Label styleClass="titre-page" text="Statistiques" />
+
+                  <!-- Cartes résumé -->
+                  <HBox spacing="15">
+                     <children>
+                        <VBox spacing="5" styleClass="carte-stat" HBox.hgrow="ALWAYS">
+                           <children><Label styleClass="carte-label" text="CA aujourd'hui" /><Label fx:id="lblCaJour" styleClass="carte-valeur" text="0 DA" /></children>
+                        </VBox>
+                        <VBox spacing="5" styleClass="carte-stat" HBox.hgrow="ALWAYS">
+                           <children><Label styleClass="carte-label" text="CA du mois" /><Label fx:id="lblCaMois" styleClass="carte-valeur" text="0 DA" /></children>
+                        </VBox>
+                        <VBox spacing="5" styleClass="carte-stat" HBox.hgrow="ALWAYS">
+                           <children><Label styleClass="carte-label" text="CA de l'année" /><Label fx:id="lblCaAnnee" styleClass="carte-valeur" text="0 DA" /></children>
+                        </VBox>
+                        <VBox spacing="5" styleClass="carte-stat" HBox.hgrow="ALWAYS">
+                           <children><Label styleClass="carte-label" text="Ventes ce mois" /><Label fx:id="lblNbVentes" styleClass="carte-valeur" text="0" /></children>
+                        </VBox>
+                        <VBox spacing="5" styleClass="carte-stat" HBox.hgrow="ALWAYS">
+                           <children><Label styleClass="carte-label" text="Panier moyen" /><Label fx:id="lblPanierMoyen" styleClass="carte-valeur" text="0 DA" /></children>
+                        </VBox>
+                     </children>
+                  </HBox>
+
+                  <!-- ===== Graphique 1 : Ventes par jour ===== -->
+                  <VBox spacing="10" styleClass="carte-panel">
+                     <children>
+                        <HBox alignment="CENTER_LEFT" spacing="15">
+                           <children>
+                              <Label styleClass="panel-titre" text="📈 Évolution des ventes par jour" />
+                              <Region HBox.hgrow="ALWAYS" />
+                              <Label text="Période :" />
+                              <ComboBox fx:id="comboJours" prefWidth="150" />
+                              <Button onAction="#chargerVentesParJour" text="Actualiser" />
+                           </children>
+                        </HBox>
+                        <LineChart fx:id="chartVentesJour" animated="false" prefHeight="280">
+                           <xAxis><CategoryAxis fx:id="axeXJour" label="Date" /></xAxis>
+                           <yAxis><NumberAxis fx:id="axeYJour" label="Montant (DA)" /></yAxis>
+                        </LineChart>
+                     </children>
+                  </VBox>
+
+                  <!-- ===== Graphique 2 : Ventes par mois ===== -->
+                  <VBox spacing="10" styleClass="carte-panel">
+                     <children>
+                        <HBox alignment="CENTER_LEFT" spacing="15">
+                           <children>
+                              <Label styleClass="panel-titre" text="📊 Ventes par mois" />
+                              <Region HBox.hgrow="ALWAYS" />
+                              <Label text="Année :" />
+                              <ComboBox fx:id="comboAnnee" prefWidth="120" />
+                              <Button onAction="#chargerVentesParMois" text="Actualiser" />
+                           </children>
+                        </HBox>
+                        <BarChart fx:id="chartVentesMois" animated="false" prefHeight="280">
+                           <xAxis><CategoryAxis fx:id="axeXMois" label="Mois" /></xAxis>
+                           <yAxis><NumberAxis fx:id="axeYMois" label="Montant (DA)" /></yAxis>
+                        </BarChart>
+                     </children>
+                  </VBox>
+
+                  <!-- ===== Graphique 3 : Ventes par année ===== -->
+                  <VBox spacing="10" styleClass="carte-panel">
+                     <children>
+                        <Label styleClass="panel-titre" text="📅 Évolution annuelle" />
+                        <BarChart fx:id="chartVentesAnnee" animated="false" prefHeight="280">
+                           <xAxis><CategoryAxis fx:id="axeXAnnee" label="Année" /></xAxis>
+                           <yAxis><NumberAxis fx:id="axeYAnnee" label="Montant (DA)" /></yAxis>
+                        </BarChart>
+                     </children>
+                  </VBox>
+
+                  <!-- ===== Graphique 4 + 5 : Top produits & Catégories (côte à côte) ===== -->
+                  <HBox spacing="15">
+                     <children>
+
+                        <VBox prefWidth="580" spacing="10" styleClass="carte-panel" HBox.hgrow="ALWAYS">
+                           <children>
+                              <Label styleClass="panel-titre" text="🏆 Top 5 produits les plus vendus" />
+                              <BarChart fx:id="chartTopProduits" animated="false" legendVisible="false" prefHeight="280">
+                                 <xAxis><CategoryAxis fx:id="axeXTop" label="Produit" /></xAxis>
+                                 <yAxis><NumberAxis fx:id="axeYTop" label="Quantité vendue" /></yAxis>
+                              </BarChart>
+                           </children>
+                        </VBox>
+
+                        <VBox prefWidth="580" spacing="10" styleClass="carte-panel" HBox.hgrow="ALWAYS">
+                           <children>
+                              <Label styleClass="panel-titre" text="🥧 Répartition des ventes par catégorie" />
+                              <PieChart fx:id="chartCategories" animated="false" prefHeight="280" />
+                           </children>
+                        </VBox>
+
+                     </children>
+                  </HBox>
+
+               </children>
+            </VBox>
+         </content>
+      </ScrollPane>
+   </center>
+</BorderPane>

@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane prefHeight="720.0" prefWidth="1143.0" styleClass="fond-degrade" stylesheets="@../styles/notification.css" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.controllers.NotificationController">
+
+   <!-- ===== BARRE DE MENU (icônes, identique à l'accueil) ===== -->
+   <top>
+      <HBox alignment="CENTER" spacing="60" styleClass="barre-menu">
+         <padding><Insets bottom="20" top="20" /></padding>
+         <children>
+
+            <VBox alignment="CENTER" onMouseClicked="#accueilpage" styleClass="menu-item">
+               <children>
+                  <ImageView fitHeight="40" fitWidth="40"><image><Image url="@../images/home.png" /></image></ImageView>
+                  <Label styleClass="menu-label" text="Accueil" />
+               </children>
+            </VBox>
+
+            <VBox alignment="CENTER" onMouseClicked="#cleintspage" styleClass="menu-item">
+               <children>
+                  <ImageView fitHeight="40" fitWidth="40"><image><Image url="@../images/vente.png" /></image></ImageView>
+                  <Label styleClass="menu-label" text="vente" />
+               </children>
+            </VBox>
+
+            <VBox alignment="CENTER" onMouseClicked="#produitspage" styleClass="menu-item">
+               <children>
+                  <ImageView fitHeight="40" fitWidth="40"><image><Image url="@../images/produits.png" /></image></ImageView>
+                  <Label styleClass="menu-label" text="Produits" />
+               </children>
+            </VBox>
+
+            <VBox alignment="CENTER" onMouseClicked="#bonpage" styleClass="menu-item">
+               <children>
+                  <ImageView fitHeight="40" fitWidth="40"><image><Image url="@../images/bon.png" /></image></ImageView>
+                  <Label styleClass="menu-label" text="BON" />
+               </children>
+            </VBox>
+
+            <VBox alignment="CENTER" onMouseClicked="#Statistiquespage" styleClass="menu-item">
+               <children>
+                  <ImageView fitHeight="40" fitWidth="40"><image><Image url="@../images/stat.png" /></image></ImageView>
+                  <Label styleClass="menu-label" text="Statistiques" />
+               </children>
+            </VBox>
+
+            <VBox alignment="CENTER" onMouseClicked="#stockpage" styleClass="menu-item">
+               <children>
+                  <ImageView fitHeight="40" fitWidth="40"><image><Image url="@../images/stock.png" /></image></ImageView>
+                  <Label styleClass="menu-label" text="Stock" />
+               </children>
+            </VBox>
+
+            <!-- Icône Notification avec badge rouge -->
+            <VBox alignment="CENTER" onMouseClicked="#notificationpage" styleClass="menu-item">
+               <children>
+                  <StackPane>
+                     <children>
+                        <ImageView fitHeight="40" fitWidth="40"><image><Image url="@../images/bell.png" /></image></ImageView>
+                        <Label fx:id="lblBadgeNotif" styleClass="badge-rouge" text="0" visible="false" StackPane.alignment="TOP_RIGHT" />
+                     </children>
+                  </StackPane>
+                  <Label styleClass="menu-label" text="Notification" />
+               </children>
+            </VBox>
+
+            <VBox alignment="CENTER" onMouseClicked="#parametrespage" styleClass="menu-item">
+               <children>
+                  <ImageView fitHeight="40" fitWidth="40"><image><Image url="@../images/parametre.png" /></image></ImageView>
+                  <Label styleClass="menu-label" text="Paramètres" />
+               </children>
+            </VBox>
+
+         </children>
+      </HBox>
+   </top>
+
+   <!-- ===== CONTENU PRINCIPAL ===== -->
+   <center>
+      <VBox spacing="20">
+         <padding><Insets bottom="20" left="30" right="30" top="20" /></padding>
+         <children>
+
+            <Label styleClass="titre-page" text="Notifications" />
+
+            <!-- Résumé rapide -->
+            <HBox spacing="15">
+               <children>
+                  <VBox spacing="5" styleClass="carte-stat carte-warning" HBox.hgrow="ALWAYS">
+                     <children>
+                        <Label styleClass="carte-label" text="Alertes stock bas" />
+                        <Label fx:id="lblCountStock" styleClass="carte-valeur" text="0" />
+                     </children>
+                  </VBox>
+                  <VBox spacing="5" styleClass="carte-stat carte-danger" HBox.hgrow="ALWAYS">
+                     <children>
+                        <Label styleClass="carte-label" text="Produits proches expiration" />
+                        <Label fx:id="lblCountExpiration" styleClass="carte-valeur" text="0" />
+                     </children>
+                  </VBox>
+               </children>
+            </HBox>
+
+            <!-- Table Alertes Stock -->
+            <Label styleClass="panel-titre" text="⚠️ Alertes de stock bas" />
+            <TableView fx:id="tableStock" prefHeight="180">
+               <columns>
+                  <TableColumn fx:id="colStockNom" prefWidth="300" text="Produit" />
+                  <TableColumn fx:id="colStockQte" prefWidth="180" text="Quantité restante" />
+                  <TableColumn fx:id="colStockSeuil" prefWidth="180" text="Seuil d'alerte" />
+               </columns>
+               <placeholder><Label text="Aucune alerte de stock" /></placeholder>
+            </TableView>
+
+            <!-- Table Expiration -->
+            <Label styleClass="panel-titre" text="⏰ Produits proches de la péremption" />
+            <TableView fx:id="tableExpiration" prefHeight="180">
+               <columns>
+                  <TableColumn fx:id="colExpNom" prefWidth="300" text="Produit" />
+                  <TableColumn fx:id="colExpDate" prefWidth="220" text="Date de péremption" />
+               </columns>
+               <placeholder><Label text="Aucun produit proche de l'expiration" /></placeholder>
+            </TableView>
+
+         </children>
+      </VBox>
+   </center>
+</BorderPane>
