@@ -15,13 +15,9 @@
             stylesheets="@../css/admin.css"
             fx:controller="com.supermarche.frontend.controllers.AdminController">
 
-   <!-- ============================================== -->
-   <!-- BARRE HORIZONTALE (NAVBAR) EN HAUT             -->
-   <!-- ============================================== -->
    <top>
       <VBox>
-
-         <!-- Ligne 1 : Logo + infos utilisateur -->
+         <!-- ============ TOPBAR (logo + utilisateur) ============ -->
          <HBox alignment="CENTER_LEFT" spacing="10" styleClass="topbar-header">
             <Label text="🛒 SUPERMARCHÉ" styleClass="brand-title"/>
             <Label text="Espace Admin" styleClass="brand-subtitle"/>
@@ -32,37 +28,26 @@
             <Button text="🚪 Déconnexion" onAction="#menuDeconnexion" styleClass="nav-btn-danger"/>
          </HBox>
 
-         <!-- Ligne 2 : Navigation horizontale -->
+         <!-- ============ NAVBAR (menu principal) ============ -->
          <HBox alignment="CENTER_LEFT" spacing="4" styleClass="navbar">
-            <Button fx:id="btnAccueil" text="🏠  Accueil" onAction="#pageAccueil" styleClass="nav-btn, nav-btn-active"/>
-            <Button fx:id="btnProduits" text="📦  Produits" onAction="#pageProduits" styleClass="nav-btn"/>
-            <Button fx:id="btnVentes" text="🛒  Ventes" onAction="#pageVentes" styleClass="nav-btn"/>
-            <Button fx:id="btnStock" text="📊  Stock" onAction="#pageStock" styleClass="nav-btn"/>
-            <Button fx:id="btnStatistiques" text="📈  Statistiques" onAction="#pageStatistiques" styleClass="nav-btn"/>
-            <Button fx:id="btnNotifications" text="🔔  Notifications" onAction="#pageNotifications" styleClass="nav-btn"/>
-            <Button fx:id="btnFournisseurs" text="🚚  Fournisseurs" onAction="#pageFournisseurs" styleClass="nav-btn"/>
-            <Button fx:id="btnParametres" text="⚙️  Paramètres" onAction="#pageParametres" styleClass="nav-btn"/>
+            <Button fx:id="btnAccueil"        text="🏠  Accueil"        onAction="#pageAccueil"        styleClass="nav-btn, nav-btn-active"/>
+            <Button fx:id="btnProduits"       text="📦  Produits"       onAction="#pageProduits"       styleClass="nav-btn"/>
+            <Button fx:id="btnVentes"         text="🛒  Ventes"         onAction="#pageVentes"         styleClass="nav-btn"/>
+            <Button fx:id="btnStock"          text="📊  Stock"          onAction="#pageStock"          styleClass="nav-btn"/>
+            <Button fx:id="btnBon"            text="📄  Bon"            onAction="#pageBon"            styleClass="nav-btn"/>
+            <Button fx:id="btnStatistiques"   text="📈  Statistiques"   onAction="#pageStatistiques"   styleClass="nav-btn"/>
+            <Button fx:id="btnNotifications"  text="🔔  Notifications"  onAction="#pageNotifications"  styleClass="nav-btn"/>
+            <Button fx:id="btnFournisseurs"   text="🚚  Fournisseurs"   onAction="#pageFournisseurs"   styleClass="nav-btn"/>
+            <Button fx:id="btnParametres"     text="⚙️  Paramètres"     onAction="#pageParametres"     styleClass="nav-btn"/>
          </HBox>
-
       </VBox>
    </top>
 
-   <!-- ============================================== -->
-   <!-- ZONE DE CONTENU PRINCIPAL                       -->
-   <!-- ============================================== -->
+   <!-- ============ CONTENU ============ -->
    <center>
-      <BorderPane>
-         <top>
-            <HBox alignment="CENTER_LEFT" styleClass="welcome-banner">
-               <Label fx:id="lblPageTitre" text="Tableau de bord" styleClass="page-title"/>
-            </HBox>
-         </top>
-         <center>
-            <StackPane fx:id="contentArea" styleClass="content-area">
-               <Label text="Bienvenue sur le tableau de bord administrateur" styleClass="placeholder-text"/>
-            </StackPane>
-         </center>
-      </BorderPane>
+      <StackPane fx:id="contentArea" styleClass="content-area">
+         <Label text="Bienvenue sur le tableau de bord administrateur" styleClass="placeholder-text"/>
+      </StackPane>
    </center>
 
 </BorderPane>

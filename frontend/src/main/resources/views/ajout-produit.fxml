@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<AnchorPane xmlns="http://javafx.com/javafx/21"
+            xmlns:fx="http://javafx.com/fxml/1"
+            prefHeight="620.0" prefWidth="800.0"
+            stylesheets="@../css/bon.css"
+            fx:controller="com.supermarche.frontend.controllers.AjoutProduitController">
+
+    <children>
+        <VBox spacing="12" AnchorPane.topAnchor="10" AnchorPane.leftAnchor="10"
+              AnchorPane.rightAnchor="10" AnchorPane.bottomAnchor="10">
+
+            <Label text="AJOUTER PRODUIT" styleClass="page-title-center"/>
+
+            <!-- Ligne 1 -->
+            <HBox spacing="10">
+                <VBox spacing="4" HBox.hgrow="ALWAYS">
+                    <Label text="Unite :" styleClass="form-label"/>
+                    <TextField fx:id="unite" promptText="Unite"/>
+                </VBox>
+                <VBox spacing="4" HBox.hgrow="ALWAYS">
+                    <Label text="nom :" styleClass="form-label"/>
+                    <TextField fx:id="nom" promptText="nom"/>
+                </VBox>
+                <VBox spacing="4" HBox.hgrow="ALWAYS">
+                    <Label text="Marque :" styleClass="form-label"/>
+                    <TextField fx:id="marque" promptText="marque"/>
+                </VBox>
+            </HBox>
+
+            <!-- Ligne 2 -->
+            <HBox spacing="10">
+                <VBox spacing="4" HBox.hgrow="ALWAYS">
+                    <Label text="Famille :" styleClass="form-label"/>
+                    <TextField fx:id="famille" promptText="Famille"/>
+                </VBox>
+                <VBox spacing="4" HBox.hgrow="ALWAYS">
+                    <Label text="Désignation :" styleClass="form-label"/>
+                    <TextField fx:id="designation" promptText="Designation"/>
+                </VBox>
+                <VBox spacing="4" HBox.hgrow="ALWAYS">
+                    <Label text="Rayonnage :" styleClass="form-label"/>
+                    <TextField fx:id="rayonnage" promptText="Rayonnage"/>
+                </VBox>
+            </HBox>
+
+            <!-- Ligne 3 -->
+            <HBox spacing="10">
+                <VBox spacing="4" HBox.hgrow="ALWAYS">
+                    <Label text="Code produit :" styleClass="form-label"/>
+                    <TextField fx:id="codeproduit" promptText="Code produit"/>
+                </VBox>
+                <VBox spacing="4" HBox.hgrow="ALWAYS">
+                    <Label text="Code barre :" styleClass="form-label"/>
+                    <TextField fx:id="codebarre" promptText="Code barre"/>
+                </VBox>
+            </HBox>
+
+            <!-- Ligne 4 -->
+            <HBox spacing="10">
+                <VBox spacing="4" HBox.hgrow="ALWAYS">
+                    <Label text="Qté initiale :" styleClass="form-label"/>
+                    <TextField fx:id="qteinitiale" promptText="0"/>
+                </VBox>
+                <VBox spacing="4" HBox.hgrow="ALWAYS">
+                    <Label text="Prix achat :" styleClass="form-label"/>
+                    <TextField fx:id="prixachat" promptText="0.0"/>
+                </VBox>
+            </HBox>
+
+            <!-- Ligne 5 -->
+            <HBox spacing="10">
+                <VBox spacing="4" HBox.hgrow="ALWAYS">
+                    <Label text="Prix gros :" styleClass="form-label"/>
+                    <TextField fx:id="prixgros" promptText="0.00"/>
+                </VBox>
+                <VBox spacing="4" HBox.hgrow="ALWAYS">
+                    <Label text="Prix détail :" styleClass="form-label"/>
+                    <TextField fx:id="prixdetail" promptText="0.00"/>
+                </VBox>
+            </HBox>
+
+            <!-- Ligne 6 -->
+            <HBox spacing="10">
+                <VBox spacing="4" HBox.hgrow="ALWAYS">
+                    <Label text="TVA % :" styleClass="form-label"/>
+                    <TextField fx:id="tva" promptText="20%"/>
+                </VBox>
+                <VBox spacing="4" HBox.hgrow="ALWAYS">
+                    <Label text="Date péremption :" styleClass="form-label"/>
+                    <DatePicker fx:id="dateperemption" maxWidth="Infinity"/>
+                </VBox>
+                <VBox spacing="4" HBox.hgrow="ALWAYS">
+                    <Label text="Jours alerte :" styleClass="form-label"/>
+                    <TextField fx:id="joursalerte" promptText="30"/>
+                </VBox>
+            </HBox>
+
+            <!-- Section bas : Codes barres + Image -->
+            <HBox spacing="20">
+                <VBox spacing="8" HBox.hgrow="ALWAYS">
+                    <Label text="Codes barres" styleClass="form-label"/>
+                    <ListView fx:id="listecodebarre" prefHeight="100"/>
+                    <HBox spacing="5">
+                        <Button text="Générer" styleClass="btn-secondary"/>
+                        <Button text="Imprimer" styleClass="btn-primary"/>
+                        <Button text="Supprimer" styleClass="btn-danger"/>
+                    </HBox>
+                </VBox>
+                <VBox spacing="8" HBox.hgrow="ALWAYS">
+                    <Label text="Image" styleClass="form-label"/>
+                    <ImageView fx:id="imageproduit" fitHeight="100" fitWidth="200"
+                               preserveRatio="true" styleClass="image-box"/>
+                    <HBox spacing="5">
+                        <Button text="Ajouter photo" styleClass="btn-success"/>
+                        <Button text="Supprimer ph." styleClass="btn-danger"/>
+                    </HBox>
+                </VBox>
+            </HBox>
+
+            <!-- Boutons finaux -->
+            <HBox alignment="CENTER" spacing="15">
+                <Button fx:id="btnenregistrer" onAction="#enregistrer" text="ENREGISTRER" styleClass="btn-success-large"/>
+                <Button fx:id="btnannuler" onAction="#annuler" text="ANNULER" styleClass="btn-secondary-large"/>
+            </HBox>
+
+        </VBox>
+    </children>
+</AnchorPane>

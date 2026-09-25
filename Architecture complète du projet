@@ -9,7 +9,7 @@ supermarche-app/
 │   │   │   │   │
 │   │   │   │   ├── config/                     # Configuration
 │   │   │   │   │   ├── SecurityConfig.java      # Spring Security + JWT
-│   │   │   │   │   ├── CorsConfig.java          # Autoriser JavaFX à appeler l'API
+│   │   │   │   │   ├── WebConfig.java          # Autoriser JavaFX à appeler l'API
 │   │   │   │   │   └── SwaggerConfig.java       # Documentation API (optionnel)
 │   │   │   │   │
 │   │   │   │   ├── model/                       # Entités JPA (tables BDD)

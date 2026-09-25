@@ -10,6 +10,8 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.VBox;
 
+import java.math.BigDecimal;
+
 public class ProduitController {
 
     // ============ NAVIGATION ============
@@ -28,18 +30,18 @@ public class ProduitController {
     @FXML private Label lblTotalProduits;
     @FXML private Label lblAlerteStock;
 
-    // ============ VUE LISTE ============
+    // ============ TABLEAU PRINCIPAL ============
     @FXML private TableView<Produit> tableProduits;
-    @FXML private TableColumn<Produit, Long> colId;
-    @FXML private TableColumn<Produit, String> colNom;
-    @FXML private TableColumn<Produit, String> colCodeBarre;
-    @FXML private TableColumn<Produit, Double> colPrixAchat;
-    @FXML private TableColumn<Produit, Double> colPrixVente;
+    @FXML private TableColumn<Produit, Integer> colId;
+    @FXML private TableColumn<Produit, String>  colNom;
+    @FXML private TableColumn<Produit, String>  colCodeBarre;
+    @FXML private TableColumn<Produit, BigDecimal> colPrixAchat;
+    @FXML private TableColumn<Produit, BigDecimal> colPrixVente;
     @FXML private TableColumn<Produit, Integer> colQuantite;
-    @FXML private TableColumn<Produit, String> colStatut;
+    @FXML private TableColumn<Produit, String>  colStatut;
     @FXML private Label lblMessage;
 
-    // ============ VUE AJOUT ============
+    // ============ FORMULAIRE AJOUT ============
     @FXML private TextField txtNom;
     @FXML private TextField txtCodeBarre;
     @FXML private TextField txtPrixAchat;
@@ -48,274 +50,204 @@ public class ProduitController {
     @FXML private TextField txtSeuilAlerte;
     @FXML private ComboBox<String> comboCategorie;
     @FXML private ComboBox<String> comboFournisseur;
-    @FXML private DatePicker dpExpiration;
     @FXML private ComboBox<String> comboUnite;
+    @FXML private DatePicker dpExpiration;
     @FXML private Label lblMessageAjout;
 
     // ============ VUE NOTIFICATIONS ============
-    @FXML private TableView<Notification> tableNotifications;
-    @FXML private TableColumn<Notification, Long> colNotifId;
-    @FXML private TableColumn<Notification, String> colNotifType;
-    @FXML private TableColumn<Notification, String> colNotifMessage;
-    @FXML private TableColumn<Notification, String> colNotifDate;
-    @FXML private TableColumn<Notification, String> colNotifStatut;
     @FXML private Label lblMessageNotif;
 
     // ============ VUE ALERTES ============
     @FXML private TableView<Produit> tableAlertes;
-    @FXML private TableColumn<Produit, Long> colAlerteId;
-    @FXML private TableColumn<Produit, String> colAlerteNom;
+    @FXML private TableColumn<Produit, Integer> colAlerteId;
+    @FXML private TableColumn<Produit, String>  colAlerteNom;
     @FXML private TableColumn<Produit, Integer> colAlerteStock;
     @FXML private TableColumn<Produit, Integer> colAlerteSeuil;
-    @FXML private TableColumn<Produit, String> colAlerteNiveau;
+    @FXML private TableColumn<Produit, String>  colAlerteNiveau;
 
     // ============ DONNÉES ============
-    private ObservableList<Produit> listeProduits = FXCollections.observableArrayList();
-    private Produit produitSelectionne = null;
+    private final ObservableList<Produit> listeProduits = FXCollections.observableArrayList();
 
     @FXML
     private void initialize() {
-        // --- Colonnes table principale ---
+        // --- Colonnes du tableau principal ---
         colId.setCellValueFactory(new PropertyValueFactory<>("id"));
         colNom.setCellValueFactory(new PropertyValueFactory<>("nom"));
-        colCodeBarre.setCellValueFactory(new PropertyValueFactory<>("codeBarre"));
+        colCodeBarre.setCellValueFactory(new PropertyValueFactory<>("codeProduit"));
         colPrixAchat.setCellValueFactory(new PropertyValueFactory<>("prixAchat"));
-        colPrixVente.setCellValueFactory(new PropertyValueFactory<>("prixVente"));
-        colQuantite.setCellValueFactory(new PropertyValueFactory<>("quantiteStock"));
-
-        // Colonne "Statut" calculée
+        colPrixVente.setCellValueFactory(new PropertyValueFactory<>("prixDetail"));
+        colQuantite.setCellValueFactory(new PropertyValueFactory<>("qteInitiale"));
         colStatut.setCellValueFactory(cellData -> {
-            Produit p = cellData.getValue();
-            int stock = p.getQuantiteStock();
-            String statut;
-            if (stock == 0) statut = "❌ Rupture";
-            else if (stock < 10) statut = "⚠️ Faible";
-            else statut = "✅ Disponible";
-            return new SimpleStringProperty(statut);
+            Integer stock = cellData.getValue().getQteInitiale();
+            if (stock == null) stock = 0;
+            String s = stock == 0 ? "❌ Rupture"
+                    : stock < 10 ? "⚠️ Faible"
+                    : "✅ Disponible";
+            return new SimpleStringProperty(s);
         });
 
         tableProduits.setItems(listeProduits);
 
-        // Sélection d'une ligne
-        tableProduits.getSelectionModel().selectedItemProperty().addListener(
-                (obs, oldVal, newVal) -> produitSelectionne = newVal);
-
-        // --- Colonnes alertes ---
+        // --- Colonnes Alertes ---
         colAlerteId.setCellValueFactory(new PropertyValueFactory<>("id"));
         colAlerteNom.setCellValueFactory(new PropertyValueFactory<>("nom"));
-        colAlerteStock.setCellValueFactory(new PropertyValueFactory<>("quantiteStock"));
-        colAlerteSeuil.setCellValueFactory(new PropertyValueFactory<>("seuilAlerte"));
+        colAlerteStock.setCellValueFactory(new PropertyValueFactory<>("qteInitiale"));
+        colAlerteSeuil.setCellValueFactory(new PropertyValueFactory<>("qteAlerte"));
         colAlerteNiveau.setCellValueFactory(cellData -> {
-            Produit p = cellData.getValue();
-            int stock = p.getQuantiteStock();
-            String niveau;
-            if (stock == 0) niveau = "🔴 Critique";
-            else if (stock < 5) niveau = "🟠 Très faible";
-            else niveau = "🟡 Faible";
+            Integer stock = cellData.getValue().getQteInitiale();
+            if (stock == null) stock = 0;
+            String niveau = stock == 0 ? "🔴 Critique"
+                    : stock < 5 ? "🟠 Très faible"
+                    : "🟡 Faible";
             return new SimpleStringProperty(niveau);
         });
 
-        // --- Remplir ComboBox ---
-        comboCategorie.setItems(FXCollections.observableArrayList(
+        // --- ComboBox ---
+        if (comboCategorie != null) comboCategorie.setItems(FXCollections.observableArrayList(
                 "Alimentaire", "Boisson", "Hygiène", "Ménage", "Autre"));
-        comboFournisseur.setItems(FXCollections.observableArrayList(
-                "Fournisseur A", "Fournisseur B", "Fournisseur C"));
-        comboUnite.setItems(FXCollections.observableArrayList("pièce", "kg", "L", "carton"));
+        if (comboFournisseur != null) comboFournisseur.setItems(FXCollections.observableArrayList(
+                "Fournisseur A", "Fournisseur B"));
+        if (comboUnite != null) comboUnite.setItems(FXCollections.observableArrayList(
+                "pièce", "kg", "L", "carton"));
 
-        // --- Charger la liste ---
+        // --- Charger depuis l'API ---
         chargerProduits();
     }
 
     // ============================================================
-    // NAVIGATION ENTRE LES VUES
+    // CHARGEMENT DEPUIS L'API
     // ============================================================
-    @FXML
-    private void afficherListe() {
-        basculerVue(vueListe, btnListe);
-    }
+    private void chargerProduits() {
+        try {
+            ObservableList<Produit> produits = ProduitService.getAll();
+            listeProduits.setAll(produits);
 
-    @FXML
-    private void afficherAjout() {
-        basculerVue(vueAjout, btnAjouter);
-        viderFormulaire();
-    }
+            if (lblNbProduits != null) lblNbProduits.setText(listeProduits.size() + " produit(s)");
+            if (lblTotalProduits != null) lblTotalProduits.setText("Total : " + listeProduits.size());
 
-    @FXML
-    private void afficherNotifications() {
-        basculerVue(vueNotifications, btnNotifications);
-    }
+            long nbAlertes = listeProduits.stream()
+                    .filter(p -> p.getQteInitiale() != null && p.getQteInitiale() < 10)
+                    .count();
+            if (lblAlerteStock != null) lblAlerteStock.setText("Alertes : " + nbAlertes);
 
-    @FXML
-    private void afficherAlertes() {
-        basculerVue(vueAlertes, btnAlertes);
-        chargerAlertes();
-    }
-
-    private void basculerVue(VBox vueActive, Button btnActif) {
-        vueListe.setVisible(false);        vueListe.setManaged(false);
-        vueAjout.setVisible(false);        vueAjout.setManaged(false);
-        vueNotifications.setVisible(false);vueNotifications.setManaged(false);
-        vueAlertes.setVisible(false);      vueAlertes.setManaged(false);
-
-        vueActive.setVisible(true);
-        vueActive.setManaged(true);
-
-        // Mise à jour du bouton actif
-        btnListe.getStyleClass().remove("nav-btn-active");
-        btnAjouter.getStyleClass().remove("nav-btn-active");
-        btnNotifications.getStyleClass().remove("nav-btn-active");
-        btnAlertes.getStyleClass().remove("nav-btn-active");
-        if (!btnActif.getStyleClass().contains("nav-btn-active")) {
-            btnActif.getStyleClass().add("nav-btn-active");
+            System.out.println("✅ " + listeProduits.size() + " produits chargés depuis l'API");
+        } catch (Exception e) {
+            System.err.println("❌ Erreur de chargement : " + e.getMessage());
+            e.printStackTrace();
+            if (lblMessage != null) {
+                lblMessage.setStyle("-fx-text-fill: #e74c3c;");
+                lblMessage.setText("Erreur de connexion au backend");
+            }
         }
     }
 
     // ============================================================
-    // CHARGEMENT DES DONNÉES
+    // NAVIGATION
     // ============================================================
-    private void chargerProduits() {
-        listeProduits.setAll(ProduitService.getAll());
-        lblNbProduits.setText(listeProduits.size() + " produit(s)");
-        lblTotalProduits.setText("Total : " + listeProduits.size());
-        long nbAlertes = listeProduits.stream().filter(p -> p.getQuantiteStock() < 10).count();
-        lblAlerteStock.setText("Alertes : " + nbAlertes);
+    @FXML private void afficherListe()        { basculerVue(vueListe, btnListe); }
+    @FXML private void afficherAjout()        { basculerVue(vueAjout, btnAjouter); }
+    @FXML private void afficherNotifications() { basculerVue(vueNotifications, btnNotifications); }
+    @FXML private void afficherAlertes()      { basculerVue(vueAlertes, btnAlertes); chargerAlertes(); }
+
+    private void basculerVue(VBox vueActive, Button btnActif) {
+        if (vueListe != null)         { vueListe.setVisible(false);         vueListe.setManaged(false); }
+        if (vueAjout != null)         { vueAjout.setVisible(false);         vueAjout.setManaged(false); }
+        if (vueNotifications != null) { vueNotifications.setVisible(false); vueNotifications.setManaged(false); }
+        if (vueAlertes != null)       { vueAlertes.setVisible(false);       vueAlertes.setManaged(false); }
+
+        if (vueActive != null) {
+            vueActive.setVisible(true);
+            vueActive.setManaged(true);
+        }
+
+        if (btnListe != null)         btnListe.getStyleClass().remove("nav-btn-active");
+        if (btnAjouter != null)       btnAjouter.getStyleClass().remove("nav-btn-active");
+        if (btnNotifications != null) btnNotifications.getStyleClass().remove("nav-btn-active");
+        if (btnAlertes != null)       btnAlertes.getStyleClass().remove("nav-btn-active");
+
+        if (btnActif != null && !btnActif.getStyleClass().contains("nav-btn-active")) {
+            btnActif.getStyleClass().add("nav-btn-active");
+        }
     }
 
     private void chargerAlertes() {
         ObservableList<Produit> alertes = FXCollections.observableArrayList();
         for (Produit p : listeProduits) {
-            if (p.getQuantiteStock() < 10) alertes.add(p);
+            if (p.getQteInitiale() != null && p.getQteInitiale() < 10) alertes.add(p);
         }
-        tableAlertes.setItems(alertes);
+        if (tableAlertes != null) tableAlertes.setItems(alertes);
     }
 
     // ============================================================
-    // AJOUT D'UN PRODUIT
+    // ACTIONS
     // ============================================================
     @FXML
-    private void handleEnregistrer() {
-        if (txtNom.getText().isBlank() || txtPrixVente.getText().isBlank()) {
-            lblMessageAjout.setStyle("-fx-text-fill: #e74c3c;");
-            lblMessageAjout.setText("Le nom et le prix de vente sont obligatoires.");
-            return;
-        }
-
-        Produit p = new Produit();
-        p.setNom(txtNom.getText());
-        p.setCodeBarre(txtCodeBarre.getText());
-        p.setPrixAchat(parseDouble(txtPrixAchat.getText()));
-        p.setPrixVente(parseDouble(txtPrixVente.getText()));
-        p.setQuantiteStock(parseInt(txtQuantite.getText()));
-
-        Produit cree = ProduitService.create(p);
-        if (cree != null) {
-            lblMessageAjout.setStyle("-fx-text-fill: #27ae60;");
-            lblMessageAjout.setText("✅ Produit ajouté avec succès.");
-            chargerProduits();
-            viderFormulaire();
-        } else {
-            lblMessageAjout.setStyle("-fx-text-fill: #e74c3c;");
-            lblMessageAjout.setText("❌ Erreur lors de l'ajout.");
-        }
+    private void handleAjouter() {
+        chargerProduits();
     }
 
     @FXML
     private void handleModifier() {
-        if (produitSelectionne == null) {
-            lblMessage.setStyle("-fx-text-fill: #e74c3c;");
-            lblMessage.setText("Sélectionnez d'abord un produit.");
+        Produit sel = tableProduits.getSelectionModel().getSelectedItem();
+        if (sel == null) {
+            if (lblMessage != null) {
+                lblMessage.setStyle("-fx-text-fill: #e74c3c;");
+                lblMessage.setText("Sélectionnez un produit.");
+            }
             return;
         }
-        // Remplir la vue Ajout avec les données du produit sélectionné
-        txtNom.setText(produitSelectionne.getNom());
-        txtCodeBarre.setText(produitSelectionne.getCodeBarre());
-        txtPrixAchat.setText(String.valueOf(produitSelectionne.getPrixAchat()));
-        txtPrixVente.setText(String.valueOf(produitSelectionne.getPrixVente()));
-        txtQuantite.setText(String.valueOf(produitSelectionne.getQuantiteStock()));
+        if (txtNom != null) txtNom.setText(sel.getNom());
+        if (txtCodeBarre != null) txtCodeBarre.setText(sel.getCodeProduit());
+        if (txtPrixAchat != null) txtPrixAchat.setText(sel.getPrixAchat() == null ? "" : sel.getPrixAchat().toString());
+        if (txtPrixVente != null) txtPrixVente.setText(sel.getPrixDetail() == null ? "" : sel.getPrixDetail().toString());
+        if (txtQuantite != null) txtQuantite.setText(sel.getQteInitiale() == null ? "" : sel.getQteInitiale().toString());
         afficherAjout();
     }
 
     @FXML
     private void handleSupprimer() {
-        if (produitSelectionne == null) {
-            lblMessage.setStyle("-fx-text-fill: #e74c3c;");
-            lblMessage.setText("Sélectionnez d'abord un produit.");
+        Produit sel = tableProduits.getSelectionModel().getSelectedItem();
+        if (sel == null) {
+            if (lblMessage != null) {
+                lblMessage.setStyle("-fx-text-fill: #e74c3c;");
+                lblMessage.setText("Sélectionnez un produit.");
+            }
             return;
         }
-
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION,
-                "Supprimer le produit \"" + produitSelectionne.getNom() + "\" ?",
+                "Supprimer \"" + sel.getNom() + "\" ?",
                 ButtonType.YES, ButtonType.NO);
-        confirm.showAndWait().ifPresent(response -> {
-            if (response == ButtonType.YES) {
-                boolean ok = ProduitService.delete(produitSelectionne.getId());
-                if (ok) {
+        confirm.showAndWait().ifPresent(r -> {
+            if (r == ButtonType.YES) {
+                if (lblMessage != null) {
                     lblMessage.setStyle("-fx-text-fill: #27ae60;");
-                    lblMessage.setText("✅ Produit supprimé.");
-                    chargerProduits();
-                    produitSelectionne = null;
-                } else {
-                    lblMessage.setStyle("-fx-text-fill: #e74c3c;");
-                    lblMessage.setText("❌ Erreur lors de la suppression.");
+                    lblMessage.setText("Produit supprimé (à implémenter côté API).");
                 }
             }
         });
     }
 
     @FXML
-    private void handleAnnuler() {
-        viderFormulaire();
-        afficherListe();
-    }
-
-    private void viderFormulaire() {
-        txtNom.clear();
-        txtCodeBarre.clear();
-        txtPrixAchat.clear();
-        txtPrixVente.clear();
-        txtQuantite.clear();
-        txtSeuilAlerte.clear();
-        if (comboCategorie != null) comboCategorie.getSelectionModel().clearSelection();
-        if (comboFournisseur != null) comboFournisseur.getSelectionModel().clearSelection();
-        if (comboUnite != null) comboUnite.getSelectionModel().clearSelection();
-        if (dpExpiration != null) dpExpiration.setValue(null);
-        lblMessageAjout.setText("");
+    private void handleEnregistrer() {
+        if (lblMessageAjout != null) {
+            lblMessageAjout.setStyle("-fx-text-fill: #27ae60;");
+            lblMessageAjout.setText("À implémenter (multipart/form-data)");
+        }
     }
 
     @FXML
+    private void handleAnnuler() {
+        afficherListe();
+    }
+
+    // ============================================================
+    // NOTIFICATIONS
+    // ============================================================
+    @FXML
     private void marquerToutLu() {
-        lblMessageNotif.setStyle("-fx-text-fill: #27ae60;");
-        lblMessageNotif.setText("✅ Toutes les notifications sont marquées comme lues.");
-    }
-
-    // ============================================================
-    // UTILITAIRES
-    // ============================================================
-    private Double parseDouble(String s) {
-        try { return Double.parseDouble(s.trim()); } catch (Exception e) { return 0.0; }
-    }
-    private Integer parseInt(String s) {
-        try { return Integer.parseInt(s.trim()); } catch (Exception e) { return 0; }
-    }
-
-    // ============================================================
-    // CLASSE INTERNE : Notification (simple placeholder)
-    // ============================================================
-    public static class Notification {
-        private final Long id;
-        private final String type;
-        private final String message;
-        private final String date;
-        private final String statut;
-
-        public Notification(Long id, String type, String message, String date, String statut) {
-            this.id = id; this.type = type; this.message = message;
-            this.date = date; this.statut = statut;
+        if (lblMessageNotif != null) {
+            lblMessageNotif.setStyle("-fx-text-fill: #27ae60;");
+            lblMessageNotif.setText("✅ Toutes les notifications sont marquées comme lues.");
         }
-        public Long getId() { return id; }
-        public String getType() { return type; }
-        public String getMessage() { return message; }
-        public String getDate() { return date; }
-        public String getStatut() { return statut; }
     }
 }

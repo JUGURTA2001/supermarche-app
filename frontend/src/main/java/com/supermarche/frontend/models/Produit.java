@@ -1,38 +1,94 @@
 package com.supermarche.frontend.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Produit {
-    private Long id;
+
+    private Integer id;
     private String nom;
-    private String codeBarre;
-    private Double prixAchat;
-    private Double prixVente;
-    private Integer quantiteStock;
-    private Integer seuilAlerte = 10; // Valeur par défaut
+    private String marque;
+    private String codeProduit;
+    private String designation;
+    private String famille;
+    private String rayonnage;
+    private String unite;
+    private Integer qteInitiale;
+    private Integer qteAlerte;
+    private BigDecimal prixAchat;
+    private BigDecimal prixDetail;
+    private BigDecimal prixGros;
+    private BigDecimal tva;
+    private LocalDate datePeremption;
+    private Integer joursAlerte;
+    private String photo;             // ex: "images/uuid.png"
+    private LocalDateTime dateCreation;
+    private LocalDateTime dateModification;
+    private String statut;
 
     public Produit() {}
 
-    // Getters / Setters
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    // ===== Getters / Setters =====
+    public Integer getId() { return id; }
+    public void setId(Integer id) { this.id = id; }
 
     public String getNom() { return nom; }
     public void setNom(String nom) { this.nom = nom; }
 
-    public String getCodeBarre() { return codeBarre; }
-    public void setCodeBarre(String codeBarre) { this.codeBarre = codeBarre; }
+    public String getMarque() { return marque; }
+    public void setMarque(String marque) { this.marque = marque; }
 
-    public Double getPrixAchat() { return prixAchat; }
-    public void setPrixAchat(Double prixAchat) { this.prixAchat = prixAchat; }
+    public String getCodeProduit() { return codeProduit; }
+    public void setCodeProduit(String codeProduit) { this.codeProduit = codeProduit; }
 
-    public Double getPrixVente() { return prixVente; }
-    public void setPrixVente(Double prixVente) { this.prixVente = prixVente; }
+    public String getDesignation() { return designation; }
+    public void setDesignation(String designation) { this.designation = designation; }
 
-    public Integer getQuantiteStock() { return quantiteStock; }
-    public void setQuantiteStock(Integer quantiteStock) { this.quantiteStock = quantiteStock; }
+    public String getFamille() { return famille; }
+    public void setFamille(String famille) { this.famille = famille; }
 
-    public Integer getSeuilAlerte() { return seuilAlerte; }
-    public void setSeuilAlerte(Integer seuilAlerte) { this.seuilAlerte = seuilAlerte; }
+    public String getRayonnage() { return rayonnage; }
+    public void setRayonnage(String rayonnage) { this.rayonnage = rayonnage; }
+
+    public String getUnite() { return unite; }
+    public void setUnite(String unite) { this.unite = unite; }
+
+    public Integer getQteInitiale() { return qteInitiale; }
+    public void setQteInitiale(Integer qteInitiale) { this.qteInitiale = qteInitiale; }
+
+    public Integer getQteAlerte() { return qteAlerte; }
+    public void setQteAlerte(Integer qteAlerte) { this.qteAlerte = qteAlerte; }
+
+    public BigDecimal getPrixAchat() { return prixAchat; }
+    public void setPrixAchat(BigDecimal prixAchat) { this.prixAchat = prixAchat; }
+
+    public BigDecimal getPrixDetail() { return prixDetail; }
+    public void setPrixDetail(BigDecimal prixDetail) { this.prixDetail = prixDetail; }
+
+    public BigDecimal getPrixGros() { return prixGros; }
+    public void setPrixGros(BigDecimal prixGros) { this.prixGros = prixGros; }
+
+    public BigDecimal getTva() { return tva; }
+    public void setTva(BigDecimal tva) { this.tva = tva; }
+
+    public LocalDate getDatePeremption() { return datePeremption; }
+    public void setDatePeremption(LocalDate datePeremption) { this.datePeremption = datePeremption; }
+
+    public Integer getJoursAlerte() { return joursAlerte; }
+    public void setJoursAlerte(Integer joursAlerte) { this.joursAlerte = joursAlerte; }
+
+    public String getPhoto() { return photo; }
+    public void setPhoto(String photo) { this.photo = photo; }
+
+    public LocalDateTime getDateCreation() { return dateCreation; }
+    public void setDateCreation(LocalDateTime dateCreation) { this.dateCreation = dateCreation; }
+
+    public LocalDateTime getDateModification() { return dateModification; }
+    public void setDateModification(LocalDateTime dateModification) { this.dateModification = dateModification; }
+
+    public String getStatut() { return statut; }
+    public void setStatut(String statut) { this.statut = statut; }
 }

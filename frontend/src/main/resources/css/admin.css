@@ -99,7 +99,7 @@
 /* ============================================== */
 .content-area {
     -fx-background-color: #f4f6f8;
-    -fx-padding: 25;
+    -fx-padding: 0;
 }
 .placeholder-text {
     -fx-font-size: 16px;

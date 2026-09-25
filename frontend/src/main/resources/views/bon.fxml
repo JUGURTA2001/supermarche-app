@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane xmlns="http://javafx.com/javafx/21"
+            xmlns:fx="http://javafx.com/fxml/1"
+            prefHeight="700.0" prefWidth="1100.0"
+            styleClass="root-pane"
+            stylesheets="@../css/bon.css"
+            fx:controller="com.supermarche.frontend.controllers.BonController">
+
+    <!-- ============================================== -->
+    <!-- TOPBAR : TOUT SUR UNE SEULE LIGNE              -->
+    <!-- ============================================== -->
+    <top>
+        <HBox alignment="CENTER_LEFT" spacing="15" styleClass="topbar-header">
+            <Label text="📄" styleClass="brand-icon"/>
+            <Label text="GESTION DES BONS" styleClass="brand-title"/>
+            <Label text="│" styleClass="brand-separator"/>
+            <Button fx:id="btnBonCommande" text="📋  Bons Commande" onAction="#afficherBonCommande" styleClass="nav-btn, nav-btn-active"/>
+            <Button fx:id="btnBonAchat" text="🛍️  Bons Achat" onAction="#afficherBonAchat" styleClass="nav-btn"/>
+            <Button fx:id="btnFournisseurs" text="🚚  Fournisseurs" onAction="#afficherFournisseurs" styleClass="nav-btn"/>
+            <Button fx:id="btnNouveauBon" text="➕  Nouveau Bon" onAction="#afficherNouveauBon" styleClass="nav-btn"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Label fx:id="lblNbBons" text="0 bon(s)" styleClass="info-pill"/>
+            <Button text="🚪 Retour" onAction="#retourMenu" styleClass="nav-btn-danger"/>
+        </HBox>
+    </top>
+
+    <!-- ============================================== -->
+    <!-- CONTENU                                        -->
+    <!-- ============================================== -->
+    <center>
+        <StackPane fx:id="contentArea" styleClass="content-area">
+
+            <!-- ============ VUE 1 : LISTE BON COMMANDE ============ -->
+            <VBox fx:id="vueBonCommande" spacing="12" styleClass="view-pane">
+                <HBox alignment="CENTER_LEFT" spacing="10">
+                    <Label text="Les Bons Commandes" styleClass="page-title"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Label fx:id="lblTotalCommandes" text="Total : 0" styleClass="info-label"/>
+                </HBox>
+
+                <TableView fx:id="tableBonCommande" VBox.vgrow="ALWAYS" styleClass="data-table">
+                    <columns>
+                        <TableColumn fx:id="colnboncommande" prefWidth="90" text="N° Bon"/>
+                        <TableColumn fx:id="codedateboncommande" prefWidth="100" text="Date"/>
+                        <TableColumn fx:id="colfourisseur" prefWidth="150" text="Fournisseur"/>
+                        <TableColumn fx:id="colqtebon" prefWidth="80" text="Quantité"/>
+                        <TableColumn fx:id="colmontant" prefWidth="120" text="Montant"/>
+                        <TableColumn fx:id="colvrsmt" prefWidth="100" text="Versement"/>
+                        <TableColumn fx:id="rest" prefWidth="100" text="Reste"/>
+                        <TableColumn fx:id="colregle" prefWidth="110" text="Statut"/>
+                    </columns>
+                </TableView>
+
+                <HBox spacing="10" alignment="CENTER_LEFT">
+                    <Button fx:id="btnacheteboncommand" onAction="#achteboncommande" text="Acheter" styleClass="btn-primary"/>
+                    <Button fx:id="btnajoutebon" onAction="#afficherNouveauBon" text="Ajouter" styleClass="btn-primary"/>
+                    <Button fx:id="btnupdatebonCommande" onAction="#btnupdatebonCommande" text="Modifier" styleClass="btn-warning"/>
+                    <Button fx:id="btnsprboncommade" onAction="#supprimerBon" text="Supprimer" styleClass="btn-danger"/>
+                    <Button text="Imprimer" styleClass="btn-secondary"/>
+                    <Button text="Excel" styleClass="btn-secondary"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Label fx:id="lblMessageCommande" styleClass="message-label"/>
+                </HBox>
+            </VBox>
+
+            <!-- ============ VUE 2 : LISTE BON ACHAT ============ -->
+            <VBox fx:id="vueBonAchat" spacing="12" styleClass="view-pane" visible="false" managed="false">
+                <HBox alignment="CENTER_LEFT" spacing="10">
+                    <Label text="Les Bons Achat" styleClass="page-title"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Label fx:id="lblTotalAchats" text="Total : 0" styleClass="info-label"/>
+                </HBox>
+
+                <TableView fx:id="tableBonAchat" VBox.vgrow="ALWAYS" styleClass="data-table">
+                    <columns>
+                        <TableColumn fx:id="idbon" prefWidth="60" text="ID"/>
+                        <TableColumn fx:id="idcommande" prefWidth="100" text="ID Commande"/>
+                        <TableColumn fx:id="totalachet" prefWidth="100" text="Total"/>
+                        <TableColumn fx:id="versment" prefWidth="100" text="Versement"/>
+                        <TableColumn fx:id="ntbarticle" prefWidth="100" text="Nb Articles"/>
+                        <TableColumn fx:id="regleachet" prefWidth="110" text="Statut"/>
+                        <TableColumn fx:id="idfernissuer" prefWidth="120" text="Fournisseur"/>
+                        <TableColumn fx:id="datebonachete" prefWidth="150" text="Date Bon"/>
+                        <TableColumn fx:id="resteachet" prefWidth="100" text="Reste"/>
+                    </columns>
+                </TableView>
+
+                <HBox spacing="10" alignment="CENTER_LEFT">
+                    <Button text="Ajouter" styleClass="btn-primary"/>
+                    <Button text="Modifier" styleClass="btn-warning"/>
+                    <Button text="Supprimer" styleClass="btn-danger"/>
+                    <Button text="Imprimer" styleClass="btn-secondary"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Label fx:id="lblMessageAchat" styleClass="message-label"/>
+                </HBox>
+            </VBox>
+
+            <!-- ============ VUE 3 : FOURNISSEURS ============ -->
+            <VBox fx:id="vueFournisseurs" spacing="12" styleClass="view-pane" visible="false" managed="false">
+                <HBox alignment="CENTER_LEFT" spacing="10">
+                    <Label text="Les Fournisseurs" styleClass="page-title"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Label fx:id="lblTotalFournisseurs" text="Total : 0" styleClass="info-label"/>
+                </HBox>
+
+                <TableView fx:id="tableFournisseurs" VBox.vgrow="ALWAYS" styleClass="data-table">
+                    <columns>
+                        <TableColumn fx:id="idf" prefWidth="60" text="ID"/>
+                        <TableColumn fx:id="nomsociaux" prefWidth="200" text="Nom Société"/>
+                        <TableColumn fx:id="nif" prefWidth="130" text="NIF"/>
+                        <TableColumn fx:id="registrecommerce" prefWidth="150" text="Registre Commerce"/>
+                        <TableColumn fx:id="adresefernisseurs" prefWidth="220" text="Adresse"/>
+                        <TableColumn fx:id="telephoneferniiseur" prefWidth="130" text="Téléphone"/>
+                    </columns>
+                </TableView>
+
+                <HBox spacing="10" alignment="CENTER_LEFT">
+                    <Button fx:id="ajoutefernisseur" onAction="#ajoutef" text="Ajouter" styleClass="btn-primary"/>
+                    <Button text="Modifier" styleClass="btn-warning"/>
+                    <Button text="Supprimer" styleClass="btn-danger"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Label fx:id="lblMessageFournisseur" styleClass="message-label"/>
+                </HBox>
+            </VBox>
+
+            <!-- ============ VUE 4 : NOUVEAU BON DE COMMANDE ============ -->
+            <VBox fx:id="vueNouveauBon" spacing="15" styleClass="view-pane" visible="false" managed="false">
+
+                <Label text="NOUVEAU BON DE COMMANDE" styleClass="page-title-center"/>
+
+                <!-- Ligne infos -->
+                <HBox spacing="15">
+                    <VBox spacing="5" HBox.hgrow="ALWAYS">
+                        <Label text="Fournisseur :" styleClass="form-label"/>
+                        <ComboBox fx:id="infoforniseur" onAction="#fournisseurSelectionne"
+                                  editable="true"
+                                  maxWidth="Infinity" promptText="Sélectionner"/>
+                    </VBox>
+                    <VBox spacing="5" HBox.hgrow="ALWAYS">
+                        <Label text="Adresse :" styleClass="form-label"/>
+                        <TextField fx:id="adressefournisseur" promptText="Adresse"/>
+                    </VBox>
+                    <VBox spacing="5" HBox.hgrow="ALWAYS">
+                        <Label text="N° Bon :" styleClass="form-label"/>
+                        <TextField editable="false" text="Auto"/>
+                    </VBox>
+                    <VBox spacing="5" HBox.hgrow="ALWAYS">
+                        <Label text="Date :" styleClass="form-label"/>
+                        <DatePicker fx:id="dateboncommande" maxWidth="Infinity"/>
+                    </VBox>
+                </HBox>
+
+                <!-- Recherche produit + bouton + -->
+                <HBox alignment="CENTER_LEFT" spacing="10">
+                    <Label text="PRODUIT :" styleClass="form-label"/>
+                    <TextField fx:id="rechercheproduit" promptText="Rechercher un produit" HBox.hgrow="ALWAYS"/>
+                    <Button fx:id="btnajouteproduit" onAction="#ouvrirPopupAjoutProduit"
+                            text="+" styleClass="btn-add-small"/>
+                    <Button fx:id="btnajouteproduitdurecherche" onAction="#handleAjouterProduit"
+                            text="Ajouter" styleClass="btn-secondary"/>
+                </HBox>
+
+                <!-- Table produits -->
+                <TableView fx:id="tableProduits" VBox.vgrow="ALWAYS" styleClass="data-table" editable="true">
+                    <columns>
+                        <TableColumn fx:id="colId" prefWidth="50" text="id" editable="false"/>
+                        <TableColumn fx:id="colNom" prefWidth="100" text="Nom" editable="false"/>
+                        <TableColumn fx:id="colCode" prefWidth="100" text="Code" editable="false"/>
+                        <TableColumn fx:id="colDesignation" prefWidth="150" text="Désignation" editable="false"/>
+                        <TableColumn fx:id="colQte" prefWidth="70" text="Qté"/>
+                        <TableColumn fx:id="colPrixachat" prefWidth="100" text="Prix Achat"/>
+                        <TableColumn fx:id="colPrixgros" prefWidth="100" text="Prix Gros"/>
+                        <TableColumn fx:id="colPrixdetaille" prefWidth="100" text="Prix Détail"/>
+                        <TableColumn fx:id="colTva" prefWidth="60" text="TVA"/>
+                        <TableColumn fx:id="colMontant" prefWidth="100" text="Montant" editable="false"/>
+                    </columns>
+                </TableView>
+
+                <!-- Totaux -->
+                <HBox spacing="15" alignment="CENTER_LEFT">
+                    <Label text="Total :" styleClass="form-label"/>
+                    <TextField fx:id="total" editable="false" prefWidth="100" text="0.00"/>
+                    <Label text="Versement :" styleClass="form-label"/>
+                    <TextField fx:id="versement" prefWidth="100" promptText="0.00"/>
+                    <Label text="Reste à payer :" styleClass="form-label"/>
+                    <TextField fx:id="resteapaye" editable="false" prefWidth="100" text="0.00"/>
+                    <Label text="Nb articles :" styleClass="form-label"/>
+                    <TextField fx:id="nbarticles" editable="false" prefWidth="60" text="0"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                </HBox>
+
+                <!-- Boutons -->
+                <HBox alignment="CENTER" spacing="10">
+                    <Button fx:id="btnEnregistrer" onAction="#enregistrerBonCommande" text="Enregistrer" styleClass="btn-primary"/>
+                    <Button fx:id="btndeletlignr" onAction="#suppremmeligmedanstableau" text="Supprimer" styleClass="btn-danger"/>
+                    <Button text="Imprimer" styleClass="btn-secondary"/>
+                    <Button text="Excel" styleClass="btn-secondary"/>
+                    <Button fx:id="btnannuler" onAction="#afficherBonCommande" text="Annuler" styleClass="btn-secondary"/>
+                </HBox>
+
+            </VBox>
+
+        </StackPane>
+    </center>
+
+</BorderPane>
