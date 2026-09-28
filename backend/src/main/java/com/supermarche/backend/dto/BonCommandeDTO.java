@@ -8,6 +8,7 @@ import java.util.List;
 @Data
 public class BonCommandeDTO {
     private Integer id;
+    private String numero;
     private Integer fournisseurId;
     private String nomFournisseur;
     private LocalDate dateBon;

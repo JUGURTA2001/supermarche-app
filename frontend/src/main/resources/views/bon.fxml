@@ -146,9 +146,7 @@
                 <HBox spacing="15">
                     <VBox spacing="5" HBox.hgrow="ALWAYS">
                         <Label text="Fournisseur :" styleClass="form-label"/>
-                        <ComboBox fx:id="infoforniseur" onAction="#fournisseurSelectionne"
-                                  editable="true"
-                                  maxWidth="Infinity" promptText="Sélectionner"/>
+                        <TextField fx:id="infoforniseur" promptText="Rechercher un fournisseur..." />
                     </VBox>
                     <VBox spacing="5" HBox.hgrow="ALWAYS">
                         <Label text="Adresse :" styleClass="form-label"/>
@@ -156,7 +154,7 @@
                     </VBox>
                     <VBox spacing="5" HBox.hgrow="ALWAYS">
                         <Label text="N° Bon :" styleClass="form-label"/>
-                        <TextField editable="false" text="Auto"/>
+                        <TextField fx:id="numeroBon" promptText="Ex: BC-20260929-001"/>
                     </VBox>
                     <VBox spacing="5" HBox.hgrow="ALWAYS">
                         <Label text="Date :" styleClass="form-label"/>

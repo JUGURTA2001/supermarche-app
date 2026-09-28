@@ -5,6 +5,7 @@ import com.supermarche.backend.model.BonAchat;
 import com.supermarche.backend.model.BonCommande;
 import com.supermarche.backend.service.BonCommandeService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,11 +24,14 @@ public class BonCommandeController {
         return service.getAll();
     }
 
+    // ⭐ Création : crée bon de commande + bon d'achat auto si reste=0
     @PostMapping
     public ResponseEntity<BonCommande> create(@RequestBody BonCommandeDTO dto) {
-        return ResponseEntity.ok(service.creerBonCommande(dto));
+        BonCommande saved = service.creerBonCommande(dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
 
+    // Conversion manuelle (pour les bons avec reste > 0)
     @PostMapping("/{id}/convertir")
     public ResponseEntity<BonAchat> convertir(
             @PathVariable Integer id,

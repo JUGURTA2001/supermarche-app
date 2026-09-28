@@ -15,6 +15,9 @@ public class BonCommande {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    @Column(length = 50)
+    private String numero;
+
     @Column(name = "fournisseur_id", nullable = false)
     private Integer fournisseurId;
 

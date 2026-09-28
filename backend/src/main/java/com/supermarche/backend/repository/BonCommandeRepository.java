@@ -11,4 +11,6 @@ public interface BonCommandeRepository extends JpaRepository<BonCommande, Intege
     List<BonCommande> findByStatut(String statut);
     List<BonCommande> findByFournisseurId(Integer fournisseurId);
     List<BonCommande> findByEstConverti(Integer estConverti);
+
+
 }

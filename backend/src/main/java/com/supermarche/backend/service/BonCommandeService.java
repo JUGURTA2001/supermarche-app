@@ -22,58 +22,145 @@ public class BonCommandeService {
     @Autowired private FournisseurRepository fournisseurRepository;
     @Autowired private ProduitRepository produitRepository;
 
-    /**
-     * Créer un bon de commande avec ses lignes.
-     */
+    // ============================================================
+    // ⭐ CRÉATION DU BON DE COMMANDE
+    //    + création auto du bon d'achat si reste == 0
+    //    + mise à jour du stock/prix des produits
+    // ============================================================
     @Transactional
     public BonCommande creerBonCommande(BonCommandeDTO dto) {
-        // 1. Sauvegarder l'entête du bon
+
+        // ---------- 1. Validation ----------
+        if (dto.getFournisseurId() == null)
+            throw new RuntimeException("Fournisseur obligatoire.");
+        if (dto.getDateBon() == null)
+            throw new RuntimeException("Date obligatoire.");
+        if (dto.getLignes() == null || dto.getLignes().isEmpty())
+            throw new RuntimeException("Ajoutez au moins un produit.");
+
+        fournisseurRepository.findById(dto.getFournisseurId())
+                .orElseThrow(() -> new RuntimeException("Fournisseur introuvable."));
+
+        // ---------- 2. Calcul du total + nb articles ----------
+        BigDecimal total = BigDecimal.ZERO;
+        int nbArticles = 0;
+        for (BonCommandeDTO.LigneBonDTO l : dto.getLignes()) {
+            if (l.getProduitId() == null)
+                throw new RuntimeException("Produit manquant dans une ligne.");
+            if (l.getQuantite() == null || l.getQuantite() <= 0)
+                throw new RuntimeException("Quantité > 0 requise pour le produit " + l.getProduitId());
+            if (l.getPrixAchat() == null || l.getPrixAchat().compareTo(BigDecimal.ZERO) <= 0)
+                throw new RuntimeException("Prix d'achat > 0 requis pour le produit " + l.getProduitId());
+
+            BigDecimal sousTotal = l.getPrixAchat().multiply(BigDecimal.valueOf(l.getQuantite()));
+            total = total.add(sousTotal);
+            nbArticles += l.getQuantite();
+        }
+
+        BigDecimal versement = dto.getVersement() == null ? BigDecimal.ZERO : dto.getVersement();
+        if (versement.compareTo(BigDecimal.ZERO) < 0)
+            throw new RuntimeException("Le versement ne peut pas être négatif.");
+        if (versement.compareTo(total) > 0)
+            throw new RuntimeException("Le versement ne peut pas dépasser le total.");
+
+        BigDecimal reste = total.subtract(versement);
+
+        // ---------- 3. Créer l'entête du bon de commande ----------
         BonCommande bon = new BonCommande();
+        bon.setNumero(dto.getNumero());
         bon.setFournisseurId(dto.getFournisseurId());
         bon.setDateBon(dto.getDateBon());
-        bon.setVersement(dto.getVersement() == null ? BigDecimal.ZERO : dto.getVersement());
+        bon.setTotal(total);
+        bon.setVersement(versement);
+        bon.setReste(reste);
+        bon.setNbArticles(nbArticles);
+        bon.setEstRegle(reste.compareTo(BigDecimal.ZERO) == 0);
         bon.setStatut("EN_ATTENTE");
         bon.setEstConverti(0);
 
-        // Calculer le total depuis les lignes
-        BigDecimal total = BigDecimal.ZERO;
-        int nbArticles = 0;
-        if (dto.getLignes() != null) {
-            for (BonCommandeDTO.LigneBonDTO ligne : dto.getLignes()) {
-                BigDecimal sousTotal = ligne.getPrixAchat()
-                        .multiply(BigDecimal.valueOf(ligne.getQuantite()));
-                total = total.add(sousTotal);
-                nbArticles += ligne.getQuantite();
-            }
-        }
-        bon.setTotal(total);
-        bon.setNbArticles(nbArticles);
-        bon.setReste(total.subtract(bon.getVersement()));
+        BonCommande savedBon = bonCommandeRepository.save(bon);
 
-        BonCommande saved = bonCommandeRepository.save(bon);
-
-        // 2. Sauvegarder les lignes
-        if (dto.getLignes() != null) {
-            for (BonCommandeDTO.LigneBonDTO ligne : dto.getLignes()) {
-                BonCommandeProduit bcp = new BonCommandeProduit();
-                bcp.setBonId(saved.getId());
-                bcp.setProduitId(ligne.getProduitId());
-                bcp.setQuantite(ligne.getQuantite());
-                bcp.setPrixAchat(ligne.getPrixAchat());
-                bcp.setPrixGros(ligne.getPrixGros() != null ? ligne.getPrixGros() : ligne.getPrixAchat());
-                bcp.setPrixDetail(ligne.getPrixDetail() != null ? ligne.getPrixDetail() : ligne.getPrixAchat());
-                bcp.setTva(ligne.getTva() != null ? ligne.getTva() : new BigDecimal("20.00"));
-                bcp.setEstRecu(false);
-                bonCommandeProduitRepository.save(bcp);
-            }
+        // ---------- 4. Créer les lignes du bon ----------
+        List<BonCommandeProduit> lignesSauvees = new ArrayList<>();
+        for (BonCommandeDTO.LigneBonDTO l : dto.getLignes()) {
+            BonCommandeProduit bcp = new BonCommandeProduit();
+            bcp.setBonId(savedBon.getId());
+            bcp.setProduitId(l.getProduitId());
+            bcp.setQuantite(l.getQuantite());
+            bcp.setPrixAchat(l.getPrixAchat());
+            bcp.setPrixGros(l.getPrixGros() != null ? l.getPrixGros() : l.getPrixAchat());
+            bcp.setPrixDetail(l.getPrixDetail() != null ? l.getPrixDetail() : l.getPrixAchat());
+            bcp.setTva(l.getTva() != null ? l.getTva() : new BigDecimal("20.00"));
+            bcp.setEstRecu(false);
+            bonCommandeProduitRepository.save(bcp);
+            lignesSauvees.add(bcp);
         }
 
-        return saved;
+        // ============================================================
+        // ⭐ SI RESTE == 0 → créer un bon d'achat + mettre à jour les produits
+        // ============================================================
+        if (reste.compareTo(BigDecimal.ZERO) == 0) {
+            System.out.println("💰 Reste = 0 → création automatique du bon d'achat...");
+
+            // ---------- 5. Créer le bon d'achat ----------
+            BonAchat achat = new BonAchat();
+            achat.setBonCommandeId(savedBon.getId());
+            achat.setTotal(total);
+            achat.setVersement(versement);
+            achat.setReste(BigDecimal.ZERO);
+            achat.setNbArticles(nbArticles);
+            achat.setEstRegle(true);
+            achat.setFournisseurId(savedBon.getFournisseurId());
+            achat.setDateBon(LocalDateTime.now());
+
+            BonAchat savedAchat = bonAchatRepository.save(achat);
+
+            // ---------- 6. Créer les détails + mise à jour produit ----------
+            for (BonCommandeProduit bcp : lignesSauvees) {
+
+                // 6.1 Détail du bon d'achat
+                DetailBonAchat detail = new DetailBonAchat();
+                detail.setBonAchatId(savedAchat.getId());
+                detail.setProduitId(bcp.getProduitId());
+                detail.setQuantite(bcp.getQuantite());
+                detail.setPrixAchat(bcp.getPrixAchat());
+                detailBonAchatRepository.save(detail);
+
+                // 6.2 Mettre à jour le produit (stock + prix)
+                Produit produit = produitRepository.findById(bcp.getProduitId())
+                        .orElseThrow(() -> new RuntimeException("Produit introuvable : " + bcp.getProduitId()));
+
+                int stock = produit.getQteInitiale() == null ? 0 : produit.getQteInitiale();
+                produit.setQteInitiale(stock + bcp.getQuantite());   // ⭐ stock += quantité
+                produit.setPrixAchat(bcp.getPrixAchat());            // ⭐ prix achat = nouveau
+                produit.setPrixGros(bcp.getPrixGros());              // ⭐ prix gros
+                produit.setPrixDetail(bcp.getPrixDetail());          // ⭐ prix détail
+                produit.setTva(bcp.getTva());
+                produitRepository.save(produit);
+
+                System.out.println("   ✅ Produit " + produit.getNom()
+                        + " : stock = " + produit.getQteInitiale()
+                        + ", prix achat = " + produit.getPrixAchat());
+            }
+
+            // ---------- 7. Marquer le bon comme converti ----------
+            savedBon.setEstConverti(1);
+            savedBon.setStatut("CONVERTI");
+            savedBon.setDateConversion(LocalDateTime.now());
+            savedBon.setBonAchatId(savedAchat.getId());
+            bonCommandeRepository.save(savedBon);
+
+            System.out.println("✅ Bon d'achat créé : id=" + savedAchat.getId());
+        } else {
+            System.out.println("⏳ Reste = " + reste + " → pas de bon d'achat.");
+        }
+
+        return savedBon;
     }
 
-    /**
-     * Récupérer tous les bons avec infos fournisseur et lignes.
-     */
+    // ============================================================
+    // LISTE
+    // ============================================================
     public List<BonCommandeDTO> getAll() {
         List<BonCommandeDTO> result = new ArrayList<>();
         for (BonCommande bon : bonCommandeRepository.findAll()) {
@@ -82,66 +169,83 @@ public class BonCommandeService {
         return result;
     }
 
-    /**
-     * Convertir un bon de commande en bon d'achat.
-     */
+    // ============================================================
+    // CONVERSION MANUELLE (pour les bons avec reste > 0)
+    // ============================================================
     @Transactional
-    public BonAchat convertirEnBonAchat(Integer bonCommandeId, BigDecimal versement) {
+    public BonAchat convertirEnBonAchat(Integer bonCommandeId, BigDecimal versementSupp) {
         BonCommande bon = bonCommandeRepository.findById(bonCommandeId)
-                .orElseThrow(() -> new RuntimeException("Bon de commande introuvable : " + bonCommandeId));
+                .orElseThrow(() -> new RuntimeException("Bon introuvable : " + bonCommandeId));
 
-        if (bon.getEstConverti() != null && bon.getEstConverti() == 1) {
-            throw new RuntimeException("Ce bon a déjà été converti.");
-        }
+        if (bon.getEstConverti() != null && bon.getEstConverti() == 1)
+            throw new RuntimeException("Ce bon est déjà converti.");
 
-        // 1. Créer le bon d'achat
+        BigDecimal nouveauVersement = bon.getVersement()
+                .add(versementSupp == null ? BigDecimal.ZERO : versementSupp);
+
+        if (nouveauVersement.compareTo(bon.getTotal()) < 0)
+            throw new RuntimeException("Versement insuffisant pour convertir.");
+
+        // Créer le bon d'achat
         BonAchat achat = new BonAchat();
         achat.setBonCommandeId(bon.getId());
         achat.setTotal(bon.getTotal());
-        achat.setVersement(versement == null ? bon.getVersement() : versement);
+        achat.setVersement(nouveauVersement);
+        achat.setReste(BigDecimal.ZERO);
         achat.setNbArticles(bon.getNbArticles());
+        achat.setEstRegle(true);
         achat.setFournisseurId(bon.getFournisseurId());
         achat.setDateBon(LocalDateTime.now());
-        achat.setReste(bon.getTotal().subtract(achat.getVersement()));
-        achat.setEstRegle(achat.getReste().compareTo(BigDecimal.ZERO) == 0);
 
         BonAchat savedAchat = bonAchatRepository.save(achat);
 
-        // 2. Créer les détails
-        List<BonCommandeProduit> lignes = bonCommandeProduitRepository.findByBonId(bon.getId());
-        for (BonCommandeProduit ligne : lignes) {
-            DetailBonAchat detail = new DetailBonAchat();
-            detail.setBonAchatId(savedAchat.getId());
-            detail.setProduitId(ligne.getProduitId());
-            detail.setQuantite(ligne.getQuantite());
-            detail.setPrixAchat(ligne.getPrixAchat());
-            detailBonAchatRepository.save(detail);
+        // Détails + update produits
+        for (BonCommandeProduit bcp : bonCommandeProduitRepository.findByBonId(bon.getId())) {
+            DetailBonAchat d = new DetailBonAchat();
+            d.setBonAchatId(savedAchat.getId());
+            d.setProduitId(bcp.getProduitId());
+            d.setQuantite(bcp.getQuantite());
+            d.setPrixAchat(bcp.getPrixAchat());
+            detailBonAchatRepository.save(d);
 
-            // 3. Mettre à jour le stock du produit
-            Produit produit = produitRepository.findById(ligne.getProduitId()).orElse(null);
-            if (produit != null) {
-                int stock = produit.getQteInitiale() == null ? 0 : produit.getQteInitiale();
-                produit.setQteInitiale(stock + ligne.getQuantite());
-                produit.setPrixAchat(ligne.getPrixAchat());
-                produit.setPrixGros(ligne.getPrixGros());
-                produit.setPrixDetail(ligne.getPrixDetail());
-                produitRepository.save(produit);
-            }
+            produitRepository.findById(bcp.getProduitId()).ifPresent(p -> {
+                int stock = p.getQteInitiale() == null ? 0 : p.getQteInitiale();
+                p.setQteInitiale(stock + bcp.getQuantite());
+                p.setPrixAchat(bcp.getPrixAchat());
+                p.setPrixGros(bcp.getPrixGros());
+                p.setPrixDetail(bcp.getPrixDetail());
+                produitRepository.save(p);
+            });
         }
 
-        // 4. Marquer le bon de commande comme converti
         bon.setEstConverti(1);
         bon.setStatut("CONVERTI");
         bon.setDateConversion(LocalDateTime.now());
         bon.setBonAchatId(savedAchat.getId());
+        bon.setVersement(nouveauVersement);
+        bon.setReste(BigDecimal.ZERO);
+        bon.setEstRegle(true);
         bonCommandeRepository.save(bon);
 
         return savedAchat;
     }
 
+    // ============================================================
+    // SUPPRESSION
+    // ============================================================
+    @Transactional
+    public void delete(Integer id) {
+        bonCommandeProduitRepository.deleteByBonId(id);
+        bonCommandeRepository.deleteById(id);
+    }
+
+    // ============================================================
+    // UTILITAIRE : ENTITÉ → DTO
+    // ============================================================
     private BonCommandeDTO toDTO(BonCommande bon) {
         BonCommandeDTO dto = new BonCommandeDTO();
         dto.setId(bon.getId());
+        dto.setNumero(bon.getNumero());
         dto.setFournisseurId(bon.getFournisseurId());
         dto.setDateBon(bon.getDateBon());
         dto.setTotal(bon.getTotal());
@@ -151,31 +255,23 @@ public class BonCommandeService {
         dto.setStatut(bon.getStatut());
         dto.setEstConverti(bon.getEstConverti() != null && bon.getEstConverti() == 1);
 
-        // Nom du fournisseur
         fournisseurRepository.findById(bon.getFournisseurId())
                 .ifPresent(f -> dto.setNomFournisseur(f.getNomSociete()));
 
-        // Lignes
-        List<BonCommandeDTO.LigneBonDTO> lignesDTO = new ArrayList<>();
-        for (BonCommandeProduit ligne : bonCommandeProduitRepository.findByBonId(bon.getId())) {
+        List<BonCommandeDTO.LigneBonDTO> lignes = new ArrayList<>();
+        for (BonCommandeProduit bcp : bonCommandeProduitRepository.findByBonId(bon.getId())) {
             BonCommandeDTO.LigneBonDTO l = new BonCommandeDTO.LigneBonDTO();
-            l.setProduitId(ligne.getProduitId());
-            l.setQuantite(ligne.getQuantite());
-            l.setPrixAchat(ligne.getPrixAchat());
-            l.setPrixGros(ligne.getPrixGros());
-            l.setPrixDetail(ligne.getPrixDetail());
-            l.setTva(ligne.getTva());
-            produitRepository.findById(ligne.getProduitId())
+            l.setProduitId(bcp.getProduitId());
+            l.setQuantite(bcp.getQuantite());
+            l.setPrixAchat(bcp.getPrixAchat());
+            l.setPrixGros(bcp.getPrixGros());
+            l.setPrixDetail(bcp.getPrixDetail());
+            l.setTva(bcp.getTva());
+            produitRepository.findById(bcp.getProduitId())
                     .ifPresent(p -> l.setNomProduit(p.getNom()));
-            lignesDTO.add(l);
+            lignes.add(l);
         }
-        dto.setLignes(lignesDTO);
-
+        dto.setLignes(lignes);
         return dto;
-    }
-
-    public void delete(Integer id) {
-        bonCommandeProduitRepository.deleteByBonId(id);
-        bonCommandeRepository.deleteById(id);
     }
 }

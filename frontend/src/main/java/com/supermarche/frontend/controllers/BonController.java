@@ -24,13 +24,18 @@ import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-import javafx.util.StringConverter;
 import javafx.util.converter.BigDecimalStringConverter;
 import javafx.util.converter.IntegerStringConverter;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 
 public class BonController {
+
+    private static final ZoneId ZONE_ALGER = ZoneId.of("Africa/Algiers");
 
     // ============ NAVIGATION ============
     @FXML private VBox vueBonCommande;
@@ -81,7 +86,11 @@ public class BonController {
     @FXML private Label lblTotalFournisseurs;
 
     // ============ VUE NOUVEAU BON ============
-    @FXML private ComboBox<Fournisseur> infoforniseur;
+    @FXML private TextField numeroBon;
+
+    // ⭐ CHANGÉ : TextField au lieu de ComboBox<Fournisseur>
+    @FXML private TextField infoforniseur;
+
     @FXML private TextField adressefournisseur;
     @FXML private DatePicker dateboncommande;
     @FXML private TextField rechercheproduit;
@@ -108,12 +117,23 @@ public class BonController {
     private final ObservableList<Produit>     listeProduits     = FXCollections.observableArrayList();
 
     private final ContextMenu popupProduits = new ContextMenu();
+    private final ContextMenu popupFournisseurs = new ContextMenu();
+
+    // ⭐ Fournisseur actuellement sélectionné (remplace ComboBox.getValue())
+    private Fournisseur fournisseurSelectionneCourant = null;
 
     // ============================================================
     // INITIALISATION
     // ============================================================
     @FXML
     private void initialize() {
+
+        if (numeroBon != null) {
+            numeroBon.setTextFormatter(new TextFormatter<>(change -> {
+                if (change.getControlNewText().matches("[A-Za-z0-9\\-]*")) return change;
+                return null;
+            }));
+        }
 
         // --- 1. Colonnes Bon Commande ---
         if (colnboncommande != null) colnboncommande.setCellValueFactory(new PropertyValueFactory<>("id"));
@@ -153,163 +173,123 @@ public class BonController {
         if (telephoneferniiseur != null) telephoneferniiseur.setCellValueFactory(new PropertyValueFactory<>("telephone"));
         if (tableFournisseurs != null) tableFournisseurs.setItems(listeFournisseurs);
 
-        // ============================================================
-        // 4. TABLE PRODUITS - ÉDITABLE
-        // ============================================================
-
+        // --- 4. Table Produits (éditable) ---
         if (tableProduits != null) {
             tableProduits.setItems(listeProduits);
-            tableProduits.setEditable(true);  // ⭐ Activer l'édition
+            tableProduits.setEditable(true);
         }
 
-        // Colonnes non-modifiables
         if (colId != null) colId.setCellValueFactory(new PropertyValueFactory<>("id"));
         if (colNom != null) colNom.setCellValueFactory(new PropertyValueFactory<>("nom"));
         if (colCode != null) colCode.setCellValueFactory(new PropertyValueFactory<>("codeProduit"));
         if (colDesignation != null) colDesignation.setCellValueFactory(new PropertyValueFactory<>("designation"));
 
-        // ⭐ COLONNE QTÉ - Modifiable, entier uniquement
         if (colQte != null) {
             colQte.setCellValueFactory(new PropertyValueFactory<>("qteInitiale"));
             colQte.setCellFactory(TextFieldTableCell.forTableColumn(new IntegerStringConverter() {
-                @Override
-                public Integer fromString(String s) {
+                @Override public Integer fromString(String s) {
                     if (s == null || s.isBlank()) return 0;
-                    // Filtre : uniquement des chiffres
-                    String cleaned = s.replaceAll("[^0-9]", "");
-                    return cleaned.isEmpty() ? 0 : Integer.parseInt(cleaned);
+                    String c = s.replaceAll("[^0-9]", "");
+                    return c.isEmpty() ? 0 : Integer.parseInt(c);
                 }
             }));
             colQte.setOnEditCommit(e -> {
-                Produit p = e.getRowValue();
-                p.setQteInitiale(e.getNewValue() == null ? 0 : e.getNewValue());
+                e.getRowValue().setQteInitiale(e.getNewValue() == null ? 0 : e.getNewValue());
                 recalculerTotaux();
             });
         }
 
-        // ⭐ COLONNE PRIX ACHAT - Modifiable, décimal uniquement
-        if (colPrixachat != null) {
-            colPrixachat.setCellValueFactory(new PropertyValueFactory<>("prixAchat"));
-            colPrixachat.setCellFactory(TextFieldTableCell.forTableColumn(new BigDecimalStringConverter() {
-                @Override
-                public BigDecimal fromString(String s) {
-                    if (s == null || s.isBlank()) return BigDecimal.ZERO;
-                    // Filtre : chiffres + un seul point
-                    String cleaned = s.replaceAll("[^0-9.]", "");
-                    try { return new BigDecimal(cleaned); }
-                    catch (Exception ex) { return BigDecimal.ZERO; }
-                }
-                @Override
-                public String toString(BigDecimal b) {
-                    return b == null ? "0.00" : b.toPlainString();
-                }
-            }));
-            colPrixachat.setOnEditCommit(e -> {
-                Produit p = e.getRowValue();
-                p.setPrixAchat(e.getNewValue() == null ? BigDecimal.ZERO : e.getNewValue());
-                recalculerTotaux();
-            });
-        }
+        configurerColonneBigDecimal(colPrixachat, "prixAchat", BigDecimal.ZERO);
+        configurerColonneBigDecimal(colPrixgros, "prixGros", BigDecimal.ZERO);
+        configurerColonneBigDecimal(colPrixdetaille, "prixDetail", BigDecimal.ZERO);
+        configurerColonneBigDecimal(colTva, "tva", new BigDecimal("20.00"));
 
-        // ⭐ COLONNE PRIX GROS - Modifiable, décimal uniquement
-        if (colPrixgros != null) {
-            colPrixgros.setCellValueFactory(new PropertyValueFactory<>("prixGros"));
-            colPrixgros.setCellFactory(TextFieldTableCell.forTableColumn(new BigDecimalStringConverter() {
-                @Override
-                public BigDecimal fromString(String s) {
-                    if (s == null || s.isBlank()) return BigDecimal.ZERO;
-                    String cleaned = s.replaceAll("[^0-9.]", "");
-                    try { return new BigDecimal(cleaned); }
-                    catch (Exception ex) { return BigDecimal.ZERO; }
-                }
-                @Override
-                public String toString(BigDecimal b) {
-                    return b == null ? "0.00" : b.toPlainString();
-                }
-            }));
-            colPrixgros.setOnEditCommit(e -> {
-                Produit p = e.getRowValue();
-                p.setPrixGros(e.getNewValue() == null ? BigDecimal.ZERO : e.getNewValue());
-                recalculerTotaux();
-            });
-        }
-
-        // ⭐ COLONNE PRIX DÉTAIL - Modifiable, décimal uniquement
-        if (colPrixdetaille != null) {
-            colPrixdetaille.setCellValueFactory(new PropertyValueFactory<>("prixDetail"));
-            colPrixdetaille.setCellFactory(TextFieldTableCell.forTableColumn(new BigDecimalStringConverter() {
-                @Override
-                public BigDecimal fromString(String s) {
-                    if (s == null || s.isBlank()) return BigDecimal.ZERO;
-                    String cleaned = s.replaceAll("[^0-9.]", "");
-                    try { return new BigDecimal(cleaned); }
-                    catch (Exception ex) { return BigDecimal.ZERO; }
-                }
-                @Override
-                public String toString(BigDecimal b) {
-                    return b == null ? "0.00" : b.toPlainString();
-                }
-            }));
-            colPrixdetaille.setOnEditCommit(e -> {
-                Produit p = e.getRowValue();
-                p.setPrixDetail(e.getNewValue() == null ? BigDecimal.ZERO : e.getNewValue());
-                recalculerTotaux();
-            });
-        }
-
-        // ⭐ COLONNE TVA - Modifiable, décimal uniquement
-        if (colTva != null) {
-            colTva.setCellValueFactory(new PropertyValueFactory<>("tva"));
-            colTva.setCellFactory(TextFieldTableCell.forTableColumn(new BigDecimalStringConverter() {
-                @Override
-                public BigDecimal fromString(String s) {
-                    if (s == null || s.isBlank()) return new BigDecimal("20.00");
-                    String cleaned = s.replaceAll("[^0-9.]", "");
-                    try { return new BigDecimal(cleaned); }
-                    catch (Exception ex) { return new BigDecimal("20.00"); }
-                }
-                @Override
-                public String toString(BigDecimal b) {
-                    return b == null ? "20.00" : b.toPlainString();
-                }
-            }));
-            colTva.setOnEditCommit(e -> {
-                Produit p = e.getRowValue();
-                p.setTva(e.getNewValue() == null ? new BigDecimal("20.00") : e.getNewValue());
-                recalculerTotaux();
-            });
-        }
-
-        // ⭐ COLONNE MONTANT - Calculée (non modifiable)
         if (colMontant != null) {
             colMontant.setCellValueFactory(c -> {
                 Produit p = c.getValue();
                 if (p.getPrixAchat() == null || p.getQteInitiale() == null) {
                     return new SimpleObjectProperty<>(BigDecimal.ZERO);
                 }
-                BigDecimal montant = p.getPrixAchat()
-                        .multiply(BigDecimal.valueOf(p.getQteInitiale()));
-                return new SimpleObjectProperty<>(montant);
+                return new SimpleObjectProperty<>(
+                        p.getPrixAchat().multiply(BigDecimal.valueOf(p.getQteInitiale())));
             });
             colMontant.setEditable(false);
         }
 
-        // --- 5. Charger les données depuis l'API ---
+        // --- 5. Charger les données ---
         chargerTout();
 
-        // --- 6. Configurer l'autocomplete fournisseur ---
-        configurerComboFournisseur();
+        // --- 6. Recherche fournisseur (nouveau système, stable) ---
+        configurerRechercheFournisseur();
 
-        // --- 7. Configurer la recherche produit ---
+        // --- 7. Recherche produit ---
         configurerRechercheProduit();
 
-        // --- 8. Listener sur le versement pour recalculer le reste ---
+        // --- 8. Listener versement ---
         if (versement != null) {
-            versement.textProperty().addListener((obs, oldV, newV) -> recalculerTotaux());
+            versement.textProperty().addListener((obs, o, n) -> recalculerTotaux());
         }
 
-        // --- 9. Afficher la première vue ---
+        // --- 9. Préparer le formulaire ---
+        preparerNouveauBon();
+
+        // --- 10. Vue par défaut ---
         afficherBonCommande();
+    }
+
+    // ============================================================
+    // UTILITAIRE : colonne BigDecimal éditable
+    // ============================================================
+    private void configurerColonneBigDecimal(TableColumn<Produit, BigDecimal> col,
+                                             String property,
+                                             BigDecimal defaultValue) {
+        if (col == null) return;
+        col.setCellValueFactory(new PropertyValueFactory<>(property));
+        col.setCellFactory(TextFieldTableCell.forTableColumn(new BigDecimalStringConverter() {
+            @Override public BigDecimal fromString(String s) {
+                if (s == null || s.isBlank()) return defaultValue;
+                String c = s.replaceAll("[^0-9.]", "");
+                try { return new BigDecimal(c); }
+                catch (Exception ex) { return defaultValue; }
+            }
+            @Override public String toString(BigDecimal b) {
+                return b == null ? defaultValue.toPlainString() : b.toPlainString();
+            }
+        }));
+        col.setOnEditCommit(e -> {
+            Produit p = e.getRowValue();
+            BigDecimal val = e.getNewValue() == null ? defaultValue : e.getNewValue();
+            switch (property) {
+                case "prixAchat":  p.setPrixAchat(val);  break;
+                case "prixGros":   p.setPrixGros(val);   break;
+                case "prixDetail": p.setPrixDetail(val); break;
+                case "tva":        p.setTva(val);        break;
+            }
+            recalculerTotaux();
+        });
+    }
+
+    // ============================================================
+    // PRÉPARER LE FORMULAIRE
+    // ============================================================
+    private void preparerNouveauBon() {
+        if (numeroBon != null) numeroBon.setText(genererNumeroBon());
+        if (dateboncommande != null) dateboncommande.setValue(LocalDate.now(ZONE_ALGER));
+        if (rechercheproduit != null) rechercheproduit.clear();
+        if (versement != null) versement.clear();
+
+        if (infoforniseur != null) infoforniseur.clear();
+        if (adressefournisseur != null) adressefournisseur.clear();
+        fournisseurSelectionneCourant = null;
+
+        listeProduits.clear();
+        recalculerTotaux();
+    }
+
+    private String genererNumeroBon() {
+        LocalDateTime now = LocalDateTime.now(ZONE_ALGER);
+        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss");
+        return "BC-" + now.format(fmt);
     }
 
     // ============================================================
@@ -325,67 +305,100 @@ public class BonController {
         if (lblTotalFournisseurs != null) lblTotalFournisseurs.setText("Total : " + listeFournisseurs.size());
         if (lblNbBons != null) lblNbBons.setText(listeBonsCommande.size() + " bon(s)");
 
-        System.out.println("✅ " + listeBonsCommande.size() + " bons de commande chargés");
-        System.out.println("✅ " + listeBonsAchat.size() + " bons d'achat chargés");
+        System.out.println("✅ " + listeBonsCommande.size() + " bons chargés");
         System.out.println("✅ " + listeFournisseurs.size() + " fournisseurs chargés");
     }
 
     // ============================================================
-    // COMBOBOX FOURNISSEUR AVEC AUTOCOMPLETE
+    // ⭐ NOUVELLE RECHERCHE FOURNISSEUR (TextField + ContextMenu)
+    // Remplace le ComboBox éditable buggé
     // ============================================================
-    private void configurerComboFournisseur() {
+    private void configurerRechercheFournisseur() {
         if (infoforniseur == null) return;
 
-        infoforniseur.setEditable(true);
-        infoforniseur.setItems(listeFournisseurs);
+        popupFournisseurs.setAutoHide(true);
 
-        infoforniseur.setConverter(new StringConverter<Fournisseur>() {
-            @Override
-            public String toString(Fournisseur f) {
-                return f == null ? "" : f.getNomSociete();
+        infoforniseur.textProperty().addListener((obs, oldVal, newVal) -> {
+            // Si le texte correspond exactement au fournisseur déjà sélectionné, ne rien faire
+            if (fournisseurSelectionneCourant != null
+                    && fournisseurSelectionneCourant.getNomSociete() != null
+                    && fournisseurSelectionneCourant.getNomSociete().equals(newVal)) {
+                return;
             }
-            @Override
-            public Fournisseur fromString(String s) {
-                return listeFournisseurs.stream()
-                        .filter(f -> f.getNomSociete() != null && f.getNomSociete().equalsIgnoreCase(s))
-                        .findFirst().orElse(null);
-            }
-        });
 
-        infoforniseur.getEditor().textProperty().addListener((obs, oldV, newV) -> {
-            if (newV == null || newV.isBlank()) {
-                infoforniseur.setItems(listeFournisseurs);
+            // Si le texte change après sélection -> on désélectionne
+            fournisseurSelectionneCourant = null;
+
+            if (newVal == null || newVal.isBlank()) {
+                popupFournisseurs.hide();
+                return;
+            }
+
+            String filtre = newVal.trim().toLowerCase();
+            java.util.List<Fournisseur> resultats = listeFournisseurs.stream()
+                    .filter(f -> f.getNomSociete() != null
+                            && f.getNomSociete().toLowerCase().contains(filtre))
+                    .limit(10)
+                    .toList();
+
+            popupFournisseurs.getItems().clear();
+
+            if (resultats.isEmpty()) {
+                MenuItem aucun = new MenuItem("Aucun fournisseur trouvé");
+                aucun.setDisable(true);
+                popupFournisseurs.getItems().add(aucun);
             } else {
-                ObservableList<Fournisseur> filtres = FournisseurService.search(newV);
-                infoforniseur.setItems(filtres);
-                if (!filtres.isEmpty()) {
-                    infoforniseur.show();
+                for (Fournisseur f : resultats) {
+                    MenuItem item = new MenuItem(f.getNomSociete());
+                    item.setOnAction(e -> selectionnerFournisseur(f));
+                    popupFournisseurs.getItems().add(item);
                 }
             }
+
+            if (infoforniseur.getScene() != null) {
+                popupFournisseurs.show(infoforniseur, Side.BOTTOM, 0, 0);
+            }
         });
 
-        infoforniseur.valueProperty().addListener((obs, oldV, newV) -> {
-            if (newV != null && adressefournisseur != null) {
-                adressefournisseur.setText(newV.getAdresse() == null ? "" : newV.getAdresse());
+        infoforniseur.focusedProperty().addListener((obs, o, focused) -> {
+            if (!focused) {
+                popupFournisseurs.hide();
+                // Si le texte tapé correspond exactement à un fournisseur existant, on le valide
+                if (fournisseurSelectionneCourant == null) {
+                    String texte = infoforniseur.getText();
+                    if (texte != null && !texte.isBlank()) {
+                        listeFournisseurs.stream()
+                                .filter(f -> f.getNomSociete() != null
+                                        && f.getNomSociete().equalsIgnoreCase(texte.trim()))
+                                .findFirst()
+                                .ifPresent(this::selectionnerFournisseur);
+                    }
+                }
             }
         });
     }
 
+    private void selectionnerFournisseur(Fournisseur f) {
+        fournisseurSelectionneCourant = f;
+        infoforniseur.setText(f.getNomSociete());
+        if (adressefournisseur != null) {
+            adressefournisseur.setText(f.getAdresse() == null ? "" : f.getAdresse());
+        }
+        popupFournisseurs.hide();
+    }
+
     // ============================================================
-    // RECHERCHE PRODUIT AVEC POPUP AUTOCOMPLETE
+    // RECHERCHE PRODUIT
     // ============================================================
     private void configurerRechercheProduit() {
         if (rechercheproduit == null) return;
 
         popupProduits.setAutoHide(true);
 
-        rechercheproduit.textProperty().addListener((obs, oldV, newV) -> {
-            if (newV == null || newV.isBlank()) {
-                popupProduits.hide();
-                return;
-            }
+        rechercheproduit.textProperty().addListener((obs, o, n) -> {
+            if (n == null || n.isBlank()) { popupProduits.hide(); return; }
 
-            ObservableList<Produit> resultats = ProduitService.search(newV);
+            ObservableList<Produit> resultats = ProduitService.search(n);
             popupProduits.getItems().clear();
 
             if (resultats.isEmpty()) {
@@ -405,9 +418,7 @@ public class BonController {
                     item.setOnAction(e -> {
                         boolean existe = listeProduits.stream()
                                 .anyMatch(x -> x.getId() != null && x.getId().equals(p.getId()));
-                        if (!existe) {
-                            listeProduits.add(p);
-                        }
+                        if (!existe) listeProduits.add(p);
                         rechercheproduit.clear();
                         popupProduits.hide();
                         recalculerTotaux();
@@ -447,7 +458,6 @@ public class BonController {
         }
         if (resteapaye != null) resteapaye.setText(t.subtract(v).toString());
 
-        // Rafraîchir la table pour recalculer la colonne Montant
         if (tableProduits != null) tableProduits.refresh();
     }
 
@@ -457,7 +467,11 @@ public class BonController {
     @FXML private void afficherBonCommande()  { basculerVue(vueBonCommande, btnBonCommande); }
     @FXML private void afficherBonAchat()     { basculerVue(vueBonAchat, btnBonAchat); }
     @FXML private void afficherFournisseurs() { basculerVue(vueFournisseurs, btnFournisseurs); }
-    @FXML private void afficherNouveauBon()   { basculerVue(vueNouveauBon, btnNouveauBon); }
+
+    @FXML private void afficherNouveauBon() {
+        preparerNouveauBon();
+        basculerVue(vueNouveauBon, btnNouveauBon);
+    }
 
     private void basculerVue(VBox vueActive, Button btnActif) {
         if (vueBonCommande != null)  { vueBonCommande.setVisible(false);  vueBonCommande.setManaged(false); }
@@ -493,12 +507,8 @@ public class BonController {
             popup.setScene(new Scene(root));
             popup.setResizable(false);
             popup.showAndWait();
-
-            System.out.println("✅ Popup fermé.");
         } catch (Exception e) {
             e.printStackTrace();
-            Alert alert = new Alert(Alert.AlertType.ERROR, "Impossible d'ouvrir le popup : " + e.getMessage());
-            alert.showAndWait();
         }
     }
 
@@ -524,16 +534,34 @@ public class BonController {
         BonCommande sel = tableBonCommande.getSelectionModel().getSelectedItem();
         if (sel == null) {
             lblMessageCommande.setStyle("-fx-text-fill: #e74c3c;");
-            lblMessageCommande.setText("Sélectionnez un bon.");
+            lblMessageCommande.setText("Sélectionnez un bon à supprimer.");
             return;
         }
-        listeBonsCommande.remove(sel);
-        lblMessageCommande.setStyle("-fx-text-fill: #27ae60;");
-        lblMessageCommande.setText("✅ Bon supprimé.");
+
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION,
+                "Supprimer le bon N° " + sel.getId() + " ?",
+                ButtonType.YES, ButtonType.NO);
+        confirm.showAndWait().ifPresent(r -> {
+            if (r == ButtonType.YES) {
+                listeBonsCommande.remove(sel);
+                lblMessageCommande.setStyle("-fx-text-fill: #27ae60;");
+                lblMessageCommande.setText("✅ Bon supprimé.");
+            }
+        });
     }
 
-    @FXML
-    private void handleAjouterProduit() {
+    @FXML private void suppremmeligmedanstableau() {
+        Produit sel = tableProduits.getSelectionModel().getSelectedItem();
+        if (sel == null) {
+            lblMessageCommande.setStyle("-fx-text-fill: #e74c3c;");
+            lblMessageCommande.setText("Sélectionnez une ligne.");
+            return;
+        }
+        listeProduits.remove(sel);
+        recalculerTotaux();
+    }
+
+    @FXML private void handleAjouterProduit() {
         if (rechercheproduit != null && !rechercheproduit.getText().isBlank()) {
             ObservableList<Produit> resultats = ProduitService.search(rechercheproduit.getText());
             if (!resultats.isEmpty()) {
@@ -547,38 +575,131 @@ public class BonController {
         }
     }
 
-    @FXML
-    private void suppremmeligmedanstableau() {
-        Produit sel = tableProduits.getSelectionModel().getSelectedItem();
-        if (sel != null) {
-            listeProduits.remove(sel);
-            recalculerTotaux();
-        }
-    }
+    // ⭐ Gardé pour compatibilité si le FXML l'appelle encore (Enter dans le champ)
+    @FXML private void fournisseurSelectionne() {
+        String texte = infoforniseur.getText();
+        if (texte == null || texte.isBlank()) return;
 
-    @FXML
-    private void fournisseurSelectionne() {
-        Fournisseur f = infoforniseur.getValue();
-        if (f != null && adressefournisseur != null) {
-            adressefournisseur.setText(f.getAdresse() == null ? "" : f.getAdresse());
-        }
+        listeFournisseurs.stream()
+                .filter(f -> f.getNomSociete() != null
+                        && f.getNomSociete().equalsIgnoreCase(texte.trim()))
+                .findFirst()
+                .ifPresent(this::selectionnerFournisseur);
     }
 
     @FXML private void ajoutef() { System.out.println("Ajouter fournisseur"); }
 
+    // ============================================================
+    // ENREGISTRER LE BON
+    // ============================================================
     @FXML
     private void enregistrerBonCommande() {
-        if (infoforniseur.getValue() == null) {
-            lblMessageCommande.setStyle("-fx-text-fill: #e74c3c;");
-            lblMessageCommande.setText("Sélectionnez un fournisseur.");
+
+        // ⭐ Récupérer le fournisseur sélectionné (plus de ComboBox.getValue())
+        Fournisseur fournisseur = fournisseurSelectionneCourant;
+
+        if (fournisseur == null) {
+            String saisie = infoforniseur.getText();
+            if (saisie != null && !saisie.isBlank()) {
+                fournisseur = listeFournisseurs.stream()
+                        .filter(f -> f.getNomSociete() != null
+                                && f.getNomSociete().equalsIgnoreCase(saisie.trim()))
+                        .findFirst().orElse(null);
+            }
+        }
+
+        if (fournisseur == null) {
+            afficherErreur("Sélectionnez un fournisseur dans la liste.");
             return;
         }
+
+        LocalDate date = dateboncommande.getValue();
+        if (date == null) { afficherErreur("Sélectionnez une date."); return; }
+
         if (listeProduits.isEmpty()) {
-            lblMessageCommande.setStyle("-fx-text-fill: #e74c3c;");
-            lblMessageCommande.setText("Ajoutez au moins un produit.");
+            afficherErreur("Ajoutez au moins un produit.");
             return;
         }
-        lblMessageCommande.setStyle("-fx-text-fill: #27ae60;");
-        lblMessageCommande.setText("✅ Bon enregistré (à implémenter).");
+
+        for (Produit p : listeProduits) {
+            if (p.getQteInitiale() == null || p.getQteInitiale() <= 0) {
+                afficherErreur("Le produit \"" + p.getNom() + "\" doit avoir une quantité > 0.");
+                return;
+            }
+            if (p.getPrixAchat() == null || p.getPrixAchat().compareTo(BigDecimal.ZERO) <= 0) {
+                afficherErreur("Le produit \"" + p.getNom() + "\" doit avoir un prix d'achat > 0.");
+                return;
+            }
+        }
+
+        BigDecimal totalCalc = BigDecimal.ZERO;
+        for (Produit p : listeProduits) {
+            totalCalc = totalCalc.add(p.getPrixAchat()
+                    .multiply(BigDecimal.valueOf(p.getQteInitiale())));
+        }
+
+        BigDecimal versementValue = BigDecimal.ZERO;
+        if (versement.getText() != null && !versement.getText().isBlank()) {
+            try { versementValue = new BigDecimal(versement.getText().trim()); }
+            catch (NumberFormatException e) {
+                afficherErreur("Le versement doit être un nombre valide.");
+                return;
+            }
+        }
+
+        if (versementValue.compareTo(BigDecimal.ZERO) < 0) {
+            afficherErreur("Le versement ne peut pas être négatif.");
+            return;
+        }
+        if (versementValue.compareTo(totalCalc) > 0) {
+            afficherErreur("Le versement ne peut pas dépasser le total.");
+            return;
+        }
+
+        String numero = numeroBon.getText();
+        if (numero == null || numero.isBlank()) {
+            numero = genererNumeroBon();
+            numeroBon.setText(numero);
+        }
+
+        try {
+            BonCommande saved = BonCommandeService.create(
+                    numero, fournisseur, date, versementValue, listeProduits);
+
+            if (saved == null) {
+                afficherErreur("Erreur lors de l'enregistrement (vérifiez le backend).");
+                return;
+            }
+
+            lblMessageCommande.setStyle("-fx-text-fill: #27ae60;");
+            lblMessageCommande.setText("✅ Bon N° " + saved.getId() + " enregistré.");
+
+            Alert ok = new Alert(Alert.AlertType.INFORMATION);
+            ok.setTitle("Succès");
+            ok.setHeaderText(null);
+            ok.setContentText("Bon N° " + saved.getId()
+                    + " enregistré.\nTotal : " + saved.getTotal()
+                    + " DA — Reste : " + saved.getReste() + " DA");
+            ok.showAndWait();
+
+            chargerTout();
+            preparerNouveauBon();
+            afficherBonCommande();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            afficherErreur("Erreur : " + e.getMessage());
+        }
+    }
+
+    private void afficherErreur(String message) {
+        lblMessageCommande.setStyle("-fx-text-fill: #e74c3c;");
+        lblMessageCommande.setText("❌ " + message);
+
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle("Erreur");
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
     }
 }

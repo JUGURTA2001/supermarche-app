@@ -24,18 +24,21 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        // Routes publiques
+                        // ============================================
+                        // Routes publiques (ordre important)
+                        // ============================================
                         .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/api/produits/**").permitAll()   // ← AJOUT
-                        .requestMatchers("/images/**").permitAll()
-                        .requestMatchers("/api/bons-commande/**").permitAll()
+                        .requestMatchers("/api/produits/**").permitAll()
                         .requestMatchers("/api/fournisseurs/**").permitAll()
-
                         .requestMatchers("/api/bons-commande/**").permitAll()
                         .requestMatchers("/api/bons-achat/**").permitAll()
-                        .requestMatchers("/api/fournisseurs/**").permitAll()
-                        // ← AJOUT
-                        // Tout le reste nécessite un token JWT
+                        .requestMatchers("/images/**").permitAll()
+                        .requestMatchers("/uploads/**").permitAll()
+
+                        // ============================================
+                        // Toutes les autres routes nécessitent un token
+                        // ⚠️ anyRequest() doit être EN DERNIER
+                        // ============================================
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session
@@ -53,7 +56,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(List.of("*"));
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         config.setAllowedHeaders(List.of("*"));
         config.setExposedHeaders(List.of("Authorization"));
 
