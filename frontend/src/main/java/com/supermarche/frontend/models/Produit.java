@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Produit {
 
+    // ===== CHAMPS =====
     private Integer id;
     private String nom;
     private String marque;
@@ -24,14 +25,17 @@ public class Produit {
     private BigDecimal tva;
     private LocalDate datePeremption;
     private Integer joursAlerte;
-    private String photo;             // ex: "images/uuid.png"
+
+    // ⭐ UN SEUL champ photo (ex: "images/uuid.png")
+    private String photo;
+
     private LocalDateTime dateCreation;
     private LocalDateTime dateModification;
     private String statut;
 
     public Produit() {}
 
-    // ===== Getters / Setters =====
+    // ===== GETTERS / SETTERS =====
     public Integer getId() { return id; }
     public void setId(Integer id) { this.id = id; }
 
@@ -80,6 +84,7 @@ public class Produit {
     public Integer getJoursAlerte() { return joursAlerte; }
     public void setJoursAlerte(Integer joursAlerte) { this.joursAlerte = joursAlerte; }
 
+    // ⭐ UN SEUL getter/setter pour photo
     public String getPhoto() { return photo; }
     public void setPhoto(String photo) { this.photo = photo; }
 

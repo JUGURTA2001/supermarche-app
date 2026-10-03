@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.control.Button?>
-<?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.DatePicker?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.TableColumn?>
@@ -15,7 +14,7 @@
 
 <BorderPane xmlns="http://javafx.com/javafx/21"
             xmlns:fx="http://javafx.com/fxml/1"
-            prefHeight="700.0" prefWidth="1100.0"
+            prefHeight="750.0" prefWidth="1150.0"
             styleClass="root-pane"
             stylesheets="@../css/bon.css"
             fx:controller="com.supermarche.frontend.controllers.BonController">
@@ -44,27 +43,32 @@
     <center>
         <StackPane fx:id="contentArea" styleClass="content-area">
 
-            <!-- ============ VUE 1 : LISTE BON COMMANDE ============ -->
-            <VBox fx:id="vueBonCommande" spacing="12" styleClass="view-pane">
+            <!-- ============================================ -->
+            <!-- VUE 1 : LISTE BON COMMANDE + LIGNES DÉTAIL  -->
+            <!-- ============================================ -->
+            <VBox fx:id="vueBonCommande" spacing="10" styleClass="view-pane">
+
                 <HBox alignment="CENTER_LEFT" spacing="10">
                     <Label text="Les Bons Commandes" styleClass="page-title"/>
                     <Region HBox.hgrow="ALWAYS"/>
                     <Label fx:id="lblTotalCommandes" text="Total : 0" styleClass="info-label"/>
                 </HBox>
 
-                <TableView fx:id="tableBonCommande" VBox.vgrow="ALWAYS" styleClass="data-table">
+                <!-- Tableau principal des bons -->
+                <TableView fx:id="tableBonCommande" prefHeight="240" styleClass="data-table">
                     <columns>
                         <TableColumn fx:id="colnboncommande" prefWidth="90" text="N° Bon"/>
                         <TableColumn fx:id="codedateboncommande" prefWidth="100" text="Date"/>
-                        <TableColumn fx:id="colfourisseur" prefWidth="150" text="Fournisseur"/>
+                        <TableColumn fx:id="colfourisseur" prefWidth="160" text="Fournisseur"/>
                         <TableColumn fx:id="colqtebon" prefWidth="80" text="Quantité"/>
-                        <TableColumn fx:id="colmontant" prefWidth="120" text="Montant"/>
+                        <TableColumn fx:id="colmontant" prefWidth="110" text="Montant"/>
                         <TableColumn fx:id="colvrsmt" prefWidth="100" text="Versement"/>
                         <TableColumn fx:id="rest" prefWidth="100" text="Reste"/>
                         <TableColumn fx:id="colregle" prefWidth="110" text="Statut"/>
                     </columns>
                 </TableView>
 
+                <!-- Boutons d'action -->
                 <HBox spacing="10" alignment="CENTER_LEFT">
                     <Button fx:id="btnacheteboncommand" onAction="#achteboncommande" text="Acheter" styleClass="btn-primary"/>
                     <Button fx:id="btnajoutebon" onAction="#afficherNouveauBon" text="Ajouter" styleClass="btn-primary"/>
@@ -75,17 +79,42 @@
                     <Region HBox.hgrow="ALWAYS"/>
                     <Label fx:id="lblMessageCommande" styleClass="message-label"/>
                 </HBox>
+
+                <!-- ⭐ Tableau des lignes du bon sélectionné -->
+                <Label fx:id="lblTitreLignes" text="Détails du bon (sélectionnez un bon)"
+                       styleClass="form-label"
+                       style="-fx-padding: 8 0 0 0;"/>
+
+                <TableView fx:id="tableLignesBonCommande" prefHeight="170"
+                           styleClass="data-table">
+                    <columns>
+                        <TableColumn fx:id="colLigneProduitId" prefWidth="60" text="ID"/>
+                        <TableColumn fx:id="colLigneProduitNom" prefWidth="200" text="Produit"/>
+                        <TableColumn fx:id="colLigneQte" prefWidth="80" text="Qté"/>
+                        <TableColumn fx:id="colLignePrixAchat" prefWidth="110" text="Prix Achat"/>
+                        <TableColumn fx:id="colLignePrixGros" prefWidth="110" text="Prix Gros"/>
+                        <TableColumn fx:id="colLignePrixDetail" prefWidth="110" text="Prix Détail"/>
+                        <TableColumn fx:id="colLigneTva" prefWidth="70" text="TVA"/>
+                        <TableColumn fx:id="colLigneMontant" prefWidth="120" text="Montant"/>
+                    </columns>
+                </TableView>
+
             </VBox>
 
-            <!-- ============ VUE 2 : LISTE BON ACHAT ============ -->
-            <VBox fx:id="vueBonAchat" spacing="12" styleClass="view-pane" visible="false" managed="false">
+            <!-- ============================================ -->
+            <!-- VUE 2 : LISTE BON ACHAT + DÉTAILS DÉTAIL    -->
+            <!-- ============================================ -->
+            <VBox fx:id="vueBonAchat" spacing="10" styleClass="view-pane"
+                  visible="false" managed="false">
+
                 <HBox alignment="CENTER_LEFT" spacing="10">
                     <Label text="Les Bons Achat" styleClass="page-title"/>
                     <Region HBox.hgrow="ALWAYS"/>
                     <Label fx:id="lblTotalAchats" text="Total : 0" styleClass="info-label"/>
                 </HBox>
 
-                <TableView fx:id="tableBonAchat" VBox.vgrow="ALWAYS" styleClass="data-table">
+                <!-- Tableau principal des bons d'achat -->
+                <TableView fx:id="tableBonAchat" prefHeight="240" styleClass="data-table">
                     <columns>
                         <TableColumn fx:id="idbon" prefWidth="60" text="ID"/>
                         <TableColumn fx:id="idcommande" prefWidth="100" text="ID Commande"/>
@@ -99,6 +128,7 @@
                     </columns>
                 </TableView>
 
+                <!-- Boutons d'action -->
                 <HBox spacing="10" alignment="CENTER_LEFT">
                     <Button text="Ajouter" styleClass="btn-primary"/>
                     <Button text="Modifier" styleClass="btn-warning"/>
@@ -107,10 +137,28 @@
                     <Region HBox.hgrow="ALWAYS"/>
                     <Label fx:id="lblMessageAchat" styleClass="message-label"/>
                 </HBox>
+
+                <!-- ⭐ Tableau des détails du bon d'achat sélectionné -->
+                <Label fx:id="lblTitreDetailsAchat" text="Détails de l'achat (sélectionnez un bon)"
+                       styleClass="form-label" style="-fx-padding: 8 0 0 0;"/>
+
+                <TableView fx:id="tableDetailsAchat" prefHeight="170" styleClass="data-table">
+                    <columns>
+                        <TableColumn fx:id="colDetailProduitId" prefWidth="60" text="ID"/>
+                        <TableColumn fx:id="colDetailProduitNom" prefWidth="220" text="Produit"/>
+                        <TableColumn fx:id="colDetailQuantite" prefWidth="80" text="Qté"/>
+                        <TableColumn fx:id="colDetailPrixAchat" prefWidth="110" text="Prix Achat"/>
+                        <TableColumn fx:id="colDetailMontant" prefWidth="120" text="Montant"/>
+                    </columns>
+                </TableView>
+
             </VBox>
 
-            <!-- ============ VUE 3 : FOURNISSEURS ============ -->
-            <VBox fx:id="vueFournisseurs" spacing="12" styleClass="view-pane" visible="false" managed="false">
+            <!-- ============================================ -->
+            <!-- VUE 3 : FOURNISSEURS                        -->
+            <!-- ============================================ -->
+            <VBox fx:id="vueFournisseurs" spacing="12" styleClass="view-pane"
+                  visible="false" managed="false">
                 <HBox alignment="CENTER_LEFT" spacing="10">
                     <Label text="Les Fournisseurs" styleClass="page-title"/>
                     <Region HBox.hgrow="ALWAYS"/>
@@ -137,8 +185,11 @@
                 </HBox>
             </VBox>
 
-            <!-- ============ VUE 4 : NOUVEAU BON DE COMMANDE ============ -->
-            <VBox fx:id="vueNouveauBon" spacing="15" styleClass="view-pane" visible="false" managed="false">
+            <!-- ============================================ -->
+            <!-- VUE 4 : NOUVEAU BON DE COMMANDE             -->
+            <!-- ============================================ -->
+            <VBox fx:id="vueNouveauBon" spacing="12" styleClass="view-pane"
+                  visible="false" managed="false">
 
                 <Label text="NOUVEAU BON DE COMMANDE" styleClass="page-title-center"/>
 
@@ -146,7 +197,7 @@
                 <HBox spacing="15">
                     <VBox spacing="5" HBox.hgrow="ALWAYS">
                         <Label text="Fournisseur :" styleClass="form-label"/>
-                        <TextField fx:id="infoforniseur" promptText="Rechercher un fournisseur..." />
+                        <TextField fx:id="infoforniseur" promptText="Rechercher un fournisseur..."/>
                     </VBox>
                     <VBox spacing="5" HBox.hgrow="ALWAYS">
                         <Label text="Adresse :" styleClass="form-label"/>
@@ -154,7 +205,7 @@
                     </VBox>
                     <VBox spacing="5" HBox.hgrow="ALWAYS">
                         <Label text="N° Bon :" styleClass="form-label"/>
-                        <TextField fx:id="numeroBon" promptText="Ex: BC-20260929-001"/>
+                        <TextField fx:id="numeroBon" promptText="Ex: BC-20261003-001"/>
                     </VBox>
                     <VBox spacing="5" HBox.hgrow="ALWAYS">
                         <Label text="Date :" styleClass="form-label"/>
@@ -165,26 +216,28 @@
                 <!-- Recherche produit + bouton + -->
                 <HBox alignment="CENTER_LEFT" spacing="10">
                     <Label text="PRODUIT :" styleClass="form-label"/>
-                    <TextField fx:id="rechercheproduit" promptText="Rechercher un produit" HBox.hgrow="ALWAYS"/>
+                    <TextField fx:id="rechercheproduit" promptText="Rechercher un produit"
+                               HBox.hgrow="ALWAYS"/>
                     <Button fx:id="btnajouteproduit" onAction="#ouvrirPopupAjoutProduit"
                             text="+" styleClass="btn-add-small"/>
                     <Button fx:id="btnajouteproduitdurecherche" onAction="#handleAjouterProduit"
                             text="Ajouter" styleClass="btn-secondary"/>
                 </HBox>
 
-                <!-- Table produits -->
-                <TableView fx:id="tableProduits" VBox.vgrow="ALWAYS" styleClass="data-table" editable="true">
+                <!-- Table produits du bon en cours de création -->
+                <TableView fx:id="tableProduits" VBox.vgrow="ALWAYS"
+                           styleClass="data-table" editable="true" prefHeight="220">
                     <columns>
                         <TableColumn fx:id="colId" prefWidth="50" text="id" editable="false"/>
-                        <TableColumn fx:id="colNom" prefWidth="100" text="Nom" editable="false"/>
-                        <TableColumn fx:id="colCode" prefWidth="100" text="Code" editable="false"/>
+                        <TableColumn fx:id="colNom" prefWidth="120" text="Nom" editable="false"/>
+                        <TableColumn fx:id="colCode" prefWidth="110" text="Code" editable="false"/>
                         <TableColumn fx:id="colDesignation" prefWidth="150" text="Désignation" editable="false"/>
                         <TableColumn fx:id="colQte" prefWidth="70" text="Qté"/>
                         <TableColumn fx:id="colPrixachat" prefWidth="100" text="Prix Achat"/>
                         <TableColumn fx:id="colPrixgros" prefWidth="100" text="Prix Gros"/>
                         <TableColumn fx:id="colPrixdetaille" prefWidth="100" text="Prix Détail"/>
                         <TableColumn fx:id="colTva" prefWidth="60" text="TVA"/>
-                        <TableColumn fx:id="colMontant" prefWidth="100" text="Montant" editable="false"/>
+                        <TableColumn fx:id="colMontant" prefWidth="110" text="Montant" editable="false"/>
                     </columns>
                 </TableView>
 
@@ -203,11 +256,14 @@
 
                 <!-- Boutons -->
                 <HBox alignment="CENTER" spacing="10">
-                    <Button fx:id="btnEnregistrer" onAction="#enregistrerBonCommande" text="Enregistrer" styleClass="btn-primary"/>
-                    <Button fx:id="btndeletlignr" onAction="#suppremmeligmedanstableau" text="Supprimer" styleClass="btn-danger"/>
+                    <Button fx:id="btnEnregistrer" onAction="#enregistrerBonCommande"
+                            text="💾 Enregistrer" styleClass="btn-primary"/>
+                    <Button fx:id="btndeletlignr" onAction="#suppremmeligmedanstableau"
+                            text="🗑️ Supprimer ligne" styleClass="btn-danger"/>
                     <Button text="Imprimer" styleClass="btn-secondary"/>
                     <Button text="Excel" styleClass="btn-secondary"/>
-                    <Button fx:id="btnannuler" onAction="#afficherBonCommande" text="Annuler" styleClass="btn-secondary"/>
+                    <Button fx:id="btnannuler" onAction="#afficherBonCommande"
+                            text="Annuler" styleClass="btn-secondary"/>
                 </HBox>
 
             </VBox>

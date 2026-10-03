@@ -24,27 +24,40 @@ public class ProduitController {
     private final ObjectMapper mapper = new ObjectMapper()
             .registerModule(new JavaTimeModule());
 
-    // ============ LISTE ============
     @GetMapping
     public List<Produit> getAll() {
         return service.findAll();
     }
 
-    // ============ DÉTAIL ============
     @GetMapping("/{id}")
     public ResponseEntity<Produit> getById(@PathVariable Integer id) {
-        return service.findById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        return service.findById(id).map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
     }
 
-    // ============ RECHERCHE ============
     @GetMapping("/search")
     public List<Produit> search(@RequestParam String nom) {
         return service.search(nom);
     }
 
-    // ============ CRÉATION ============
+    @GetMapping("/exists")
+    public boolean codeExists(@RequestParam String code) {
+        if (code == null || code.isBlank()) return false;
+        return service.findByCode(code.trim()) != null;
+    }
+
+    @GetMapping("/generate-code")
+    public String generateUniqueCode() {
+        String code;
+        int tentative = 0;
+        do {
+            code = "PRD-" + java.time.LocalDate.now().toString().replace("-", "")
+                    + "-" + String.format("%04d", (int)(Math.random() * 10000));
+            tentative++;
+        } while (service.findByCode(code) != null && tentative < 100);
+        return code;
+    }
+
+    /** ⭐ CRÉATION avec photo multipart */
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Produit> create(
             @RequestPart("produit") String produitJson,
@@ -55,7 +68,7 @@ public class ProduitController {
         return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
 
-    // ============ MISE À JOUR ============
+    /** ⭐ MISE À JOUR avec photo multipart */
     @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Produit> update(
             @PathVariable Integer id,
@@ -67,7 +80,6 @@ public class ProduitController {
         return ResponseEntity.ok(updated);
     }
 
-    // ============ SUPPRESSION ============
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Integer id) {
         service.delete(id);

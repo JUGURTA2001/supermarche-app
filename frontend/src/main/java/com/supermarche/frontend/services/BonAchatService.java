@@ -24,4 +24,16 @@ public class BonAchatService {
             return FXCollections.observableArrayList();
         }
     }
+
+
+    /** GET /api/bons-achat/{id} → un bon avec ses détails */
+    public static BonAchat getById(Integer id) {
+        try {
+            String json = ApiClient.get("/api/bons-achat/" + id);
+            return ApiClient.MAPPER.readValue(json, BonAchat.class);
+        } catch (Exception e) {
+            System.err.println("❌ Erreur bon d'achat " + id + " : " + e.getMessage());
+            return null;
+        }
+    }
 }

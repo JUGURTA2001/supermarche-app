@@ -144,10 +144,10 @@ public class ProduitController {
     // ============================================================
     // NAVIGATION
     // ============================================================
-    @FXML private void afficherListe()        { basculerVue(vueListe, btnListe); }
-    @FXML private void afficherAjout()        { basculerVue(vueAjout, btnAjouter); }
+    @FXML private void afficherListe()         { basculerVue(vueListe, btnListe); }
+    @FXML private void afficherAjout()         { basculerVue(vueAjout, btnAjouter); }
     @FXML private void afficherNotifications() { basculerVue(vueNotifications, btnNotifications); }
-    @FXML private void afficherAlertes()      { basculerVue(vueAlertes, btnAlertes); chargerAlertes(); }
+    @FXML private void afficherAlertes()       { basculerVue(vueAlertes, btnAlertes); chargerAlertes(); }
 
     private void basculerVue(VBox vueActive, Button btnActif) {
         if (vueListe != null)         { vueListe.setVisible(false);         vueListe.setManaged(false); }

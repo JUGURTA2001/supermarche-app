@@ -42,9 +42,6 @@ public class ProduitService {
     /**
      * Recherche par code produit.
      */
-    public Produit findByCode(String code) {
-        return repository.findByCodeProduit(code);
-    }
 
     // ============================================================
     // ÉCRITURE
@@ -146,5 +143,10 @@ public class ProduitService {
         }
         p.setQteInitiale(stock - quantite);
         return repository.save(p);
+    }
+
+    public Produit findByCode(String code) {
+        if (code == null || code.isBlank()) return null;
+        return repository.findByCodeProduit(code.trim());
     }
 }

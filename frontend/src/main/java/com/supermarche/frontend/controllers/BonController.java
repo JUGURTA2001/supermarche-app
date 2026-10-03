@@ -110,6 +110,20 @@ public class BonController {
     @FXML private TextField resteapaye;
     @FXML private TextField nbarticles;
 
+    // ⭐ Détails des lignes du bon sélectionné
+    @FXML private Label lblTitreLignes;
+    @FXML private TableView<BonCommande.LigneBon> tableLignesBonCommande;
+    @FXML private TableColumn<BonCommande.LigneBon, Integer> colLigneProduitId;
+    @FXML private TableColumn<BonCommande.LigneBon, String>  colLigneProduitNom;
+    @FXML private TableColumn<BonCommande.LigneBon, Integer> colLigneQte;
+    @FXML private TableColumn<BonCommande.LigneBon, BigDecimal> colLignePrixAchat;
+    @FXML private TableColumn<BonCommande.LigneBon, BigDecimal> colLignePrixGros;
+    @FXML private TableColumn<BonCommande.LigneBon, BigDecimal> colLignePrixDetail;
+    @FXML private TableColumn<BonCommande.LigneBon, BigDecimal> colLigneTva;
+    @FXML private TableColumn<BonCommande.LigneBon, BigDecimal> colLigneMontant;
+
+    private final ObservableList<BonCommande.LigneBon> listeLignesSelectionnees = FXCollections.observableArrayList();
+
     // ============ DONNÉES ============
     private final ObservableList<BonCommande> listeBonsCommande = FXCollections.observableArrayList();
     private final ObservableList<BonAchat>    listeBonsAchat    = FXCollections.observableArrayList();
@@ -127,6 +141,55 @@ public class BonController {
     // ============================================================
     @FXML
     private void initialize() {
+        if (tableDetailsAchat != null) {
+            colDetailProduitId.setCellValueFactory(new PropertyValueFactory<>("produitId"));
+            colDetailProduitNom.setCellValueFactory(new PropertyValueFactory<>("nomProduit"));
+            colDetailQuantite.setCellValueFactory(new PropertyValueFactory<>("quantite"));
+            colDetailPrixAchat.setCellValueFactory(new PropertyValueFactory<>("prixAchat"));
+            colDetailMontant.setCellValueFactory(c -> {
+                BonAchat.DetailLigne d = c.getValue();
+                if (d.getPrixAchat() == null || d.getQuantite() == null) {
+                    return new SimpleObjectProperty<>(BigDecimal.ZERO);
+                }
+                return new SimpleObjectProperty<>(
+                        d.getPrixAchat().multiply(BigDecimal.valueOf(d.getQuantite())));
+            });
+            tableDetailsAchat.setItems(listeDetailsAchat);
+        }
+
+        if (tableBonAchat != null) {
+            tableBonAchat.getSelectionModel().selectedItemProperty().addListener(
+                    (obs, oldBA, newBA) -> chargerDetailsAchat(newBA));
+        }
+
+
+        // --- ⭐ Configuration du tableau des lignes ---
+        if (tableLignesBonCommande != null) {
+            colLigneProduitId.setCellValueFactory(new PropertyValueFactory<>("produitId"));
+            colLigneProduitNom.setCellValueFactory(new PropertyValueFactory<>("nomProduit"));
+            colLigneQte.setCellValueFactory(new PropertyValueFactory<>("quantite"));
+            colLignePrixAchat.setCellValueFactory(new PropertyValueFactory<>("prixAchat"));
+            colLignePrixGros.setCellValueFactory(new PropertyValueFactory<>("prixGros"));
+            colLignePrixDetail.setCellValueFactory(new PropertyValueFactory<>("prixDetail"));
+            colLigneTva.setCellValueFactory(new PropertyValueFactory<>("tva"));
+
+            colLigneMontant.setCellValueFactory(c -> {
+                BonCommande.LigneBon l = c.getValue();
+                if (l.getPrixAchat() == null || l.getQuantite() == null) {
+                    return new SimpleObjectProperty<>(BigDecimal.ZERO);
+                }
+                return new SimpleObjectProperty<>(
+                        l.getPrixAchat().multiply(BigDecimal.valueOf(l.getQuantite())));
+            });
+
+            tableLignesBonCommande.setItems(listeLignesSelectionnees);
+        }
+
+// --- ⭐ Listener : quand on clique sur un bon, on remplit les lignes ---
+        if (tableBonCommande != null) {
+            tableBonCommande.getSelectionModel().selectedItemProperty().addListener(
+                    (obs, oldBon, newBon) -> afficherLignesDuBon(newBon));
+        }
 
         if (numeroBon != null) {
             numeroBon.setTextFormatter(new TextFormatter<>(change -> {
@@ -500,6 +563,12 @@ public class BonController {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/ajout-produit.fxml"));
             Parent root = loader.load();
 
+            AjoutProduitController ctrl = loader.getController();
+            // Rafraîchir la table produits du bon après ajout
+            ctrl.setOnSuccess(() -> {
+                System.out.println("✅ Nouveau produit ajouté, prêt à être sélectionné.");
+            });
+
             Stage popup = new Stage();
             popup.setTitle("Ajouter un produit");
             popup.initModality(Modality.APPLICATION_MODAL);
@@ -701,5 +770,65 @@ public class BonController {
         alert.setHeaderText(null);
         alert.setContentText(message);
         alert.showAndWait();
+    }
+
+
+    /**
+     * Affiche les lignes (produits) du bon de commande sélectionné.
+     */
+    private void afficherLignesDuBon(BonCommande bon) {
+        listeLignesSelectionnees.clear();
+
+        if (bon == null) {
+            if (lblTitreLignes != null) {
+                lblTitreLignes.setText("Détails du bon (sélectionnez un bon)");
+            }
+            return;
+        }
+
+        if (lblTitreLignes != null) {
+            lblTitreLignes.setText("📋 Détails du Bon N° " + bon.getId()
+                    + " — Fournisseur : " + (bon.getNomFournisseur() == null ? "-" : bon.getNomFournisseur())
+                    + " — Total : " + (bon.getTotal() == null ? "0.00" : bon.getTotal()) + " DA");
+        }
+
+        if (bon.getLignes() != null && !bon.getLignes().isEmpty()) {
+            listeLignesSelectionnees.setAll(bon.getLignes());
+        } else {
+            System.out.println("⚠️ Ce bon n'a pas de lignes ou elles ne sont pas chargées.");
+        }
+    }
+
+    @FXML private Label lblTitreDetailsAchat;
+    @FXML private TableView<BonAchat.DetailLigne> tableDetailsAchat;
+    @FXML private TableColumn<BonAchat.DetailLigne, Integer> colDetailProduitId;
+    @FXML private TableColumn<BonAchat.DetailLigne, String>  colDetailProduitNom;
+    @FXML private TableColumn<BonAchat.DetailLigne, Integer> colDetailQuantite;
+    @FXML private TableColumn<BonAchat.DetailLigne, BigDecimal> colDetailPrixAchat;
+    @FXML private TableColumn<BonAchat.DetailLigne, BigDecimal> colDetailMontant;
+
+    private final ObservableList<BonAchat.DetailLigne> listeDetailsAchat = FXCollections.observableArrayList();
+
+
+
+    private void chargerDetailsAchat(BonAchat ba) {
+        listeDetailsAchat.clear();
+        if (ba == null) {
+            if (lblTitreDetailsAchat != null)
+                lblTitreDetailsAchat.setText("Détails de l'achat (sélectionnez un bon)");
+            return;
+        }
+
+        // Appel API pour récupérer les détails
+        BonAchat complet = BonAchatService.getById(ba.getId());
+        if (complet != null && complet.getDetails() != null) {
+            listeDetailsAchat.setAll(complet.getDetails());
+        }
+
+        if (lblTitreDetailsAchat != null) {
+            lblTitreDetailsAchat.setText("🛍️ Détails du Bon d'Achat N° " + ba.getId()
+                    + " — Total : " + (ba.getTotal() == null ? "0.00" : ba.getTotal()) + " DA"
+                    + " — Articles : " + (ba.getNbArticles() == null ? 0 : ba.getNbArticles()));
+        }
     }
 }
