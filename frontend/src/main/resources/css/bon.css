@@ -316,6 +316,19 @@
     -fx-padding: 4 14 4 14;
     -fx-cursor: hand;
 }
+
+
+.btn-success {
+    -fx-background-color: #27ae60;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-background-radius: 5;
+    -fx-padding: 8 18 8 18;
+    -fx-cursor: hand;
+}
+.btn-success:hover {
+    -fx-background-color: #1e8449;
+}
 .btn-add-small:hover { -fx-background-color: #2980b9; }
 
 /* ============================================== */

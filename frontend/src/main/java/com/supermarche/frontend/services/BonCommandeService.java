@@ -68,4 +68,20 @@ public class BonCommandeService {
             return null;
         }
     }
+
+    public static boolean convertir(Integer bonCommandeId, java.math.BigDecimal versementSupplementaire) {
+        try {
+            String url = "/api/bons-commande/" + bonCommandeId + "/convertir";
+            if (versementSupplementaire != null
+                    && versementSupplementaire.compareTo(java.math.BigDecimal.ZERO) > 0) {
+                url += "?versement=" + versementSupplementaire.toPlainString();
+            }
+            ApiClient.post(url, "");
+            return true;
+        } catch (Exception e) {
+            System.err.println("❌ Erreur conversion : " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
 }

@@ -25,6 +25,20 @@ public class BonAchatService {
         }
     }
 
+    /**
+     * Ajoute un versement à un bon d'achat.
+     * POST /api/bons-achat/{id}/versement?montant=XXX
+     */
+    public static boolean ajouterVersement(Integer bonAchatId, java.math.BigDecimal montant) {
+        try {
+            String url = "/api/bons-achat/" + bonAchatId + "/versement?montant=" + montant.toPlainString();
+            ApiClient.post(url, "");
+            return true;
+        } catch (Exception e) {
+            System.err.println("❌ Erreur versement : " + e.getMessage());
+            return false;
+        }
+    }
 
     /** GET /api/bons-achat/{id} → un bon avec ses détails */
     public static BonAchat getById(Integer id) {

@@ -47,6 +47,7 @@ public class BonController {
     @FXML private Button btnFournisseurs;
     @FXML private Button btnNouveauBon;
     @FXML private Label lblNbBons;
+    @FXML private Button btnAjouterVersement;
 
     // ============ VUE BON COMMANDE ============
     @FXML private TableView<BonCommande> tableBonCommande;
@@ -207,9 +208,19 @@ public class BonController {
         if (colmontant != null) colmontant.setCellValueFactory(new PropertyValueFactory<>("total"));
         if (colvrsmt != null) colvrsmt.setCellValueFactory(new PropertyValueFactory<>("versement"));
         if (rest != null) rest.setCellValueFactory(new PropertyValueFactory<>("reste"));
-        if (colregle != null) colregle.setCellValueFactory(c ->
-                new SimpleStringProperty(c.getValue().getEstConverti() != null && c.getValue().getEstConverti()
-                        ? "✅ Converti" : "⏳ En attente"));
+        if (colregle != null) colregle.setCellValueFactory(c -> {
+            BonCommande b = c.getValue();
+            if (b.getEstConverti() != null && b.getEstConverti()) {
+                // Vérifier si entièrement réglé
+                if (b.getReste() != null && b.getReste().compareTo(BigDecimal.ZERO) == 0) {
+                    return new SimpleStringProperty("✅ Réglé");
+                } else {
+                    BigDecimal reste = b.getReste() == null ? BigDecimal.ZERO : b.getReste();
+                    return new SimpleStringProperty("💳 Crédit : " + reste + " DA");
+                }
+            }
+            return new SimpleStringProperty("⏳ En attente");
+        });
         if (tableBonCommande != null) tableBonCommande.setItems(listeBonsCommande);
 
         // --- 2. Colonnes Bon Achat ---
@@ -218,9 +229,14 @@ public class BonController {
         if (totalachet != null) totalachet.setCellValueFactory(new PropertyValueFactory<>("total"));
         if (versment != null) versment.setCellValueFactory(new PropertyValueFactory<>("versement"));
         if (ntbarticle != null) ntbarticle.setCellValueFactory(new PropertyValueFactory<>("nbArticles"));
-        if (regleachet != null) regleachet.setCellValueFactory(c ->
-                new SimpleStringProperty(c.getValue().getEstRegle() != null && c.getValue().getEstRegle()
-                        ? "✅ Réglé" : "⏳ Non réglé"));
+        if (regleachet != null) regleachet.setCellValueFactory(c -> {
+            BonAchat b = c.getValue();
+            if (b.getEstRegle() != null && b.getEstRegle()) {
+                return new SimpleStringProperty("✅ Réglé");
+            }
+            BigDecimal reste = b.getReste() == null ? BigDecimal.ZERO : b.getReste();
+            return new SimpleStringProperty("💳 Crédit : " + reste + " DA");
+        });
         if (idfernissuer != null) idfernissuer.setCellValueFactory(new PropertyValueFactory<>("fournisseurId"));
         if (datebonachete != null) datebonachete.setCellValueFactory(c ->
                 new SimpleStringProperty(c.getValue().getDateBon() == null ? "-" : c.getValue().getDateBon().toString()));
@@ -586,15 +602,48 @@ public class BonController {
     // ============================================================
     @FXML private void retourMenu() { System.out.println("Retour"); }
 
-    @FXML private void achteboncommande() {
+    @FXML
+    private void achteboncommande() {
         BonCommande sel = tableBonCommande.getSelectionModel().getSelectedItem();
+
         if (sel == null) {
             lblMessageCommande.setStyle("-fx-text-fill: #e74c3c;");
-            lblMessageCommande.setText("Sélectionnez un bon.");
+            lblMessageCommande.setText("Sélectionnez un bon de commande.");
             return;
         }
-        lblMessageCommande.setStyle("-fx-text-fill: #27ae60;");
-        lblMessageCommande.setText("✅ Bon " + sel.getId() + " converti (à implémenter).");
+
+        if (sel.getEstConverti() != null && sel.getEstConverti()) {
+            lblMessageCommande.setStyle("-fx-text-fill: #e67e22;");
+            lblMessageCommande.setText("⚠️ Ce bon a déjà été converti.");
+            return;
+        }
+
+        try {
+            javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(
+                    getClass().getResource("/views/confirmer-paiement.fxml"));
+            javafx.scene.Parent root = loader.load();
+
+            ConfirmerPaiementController ctrl = loader.getController();
+            ctrl.setBon(sel);
+            ctrl.setOnSuccess(() -> {
+                chargerTout();
+                lblMessageCommande.setStyle("-fx-text-fill: #27ae60;");
+                lblMessageCommande.setText("✅ Bon converti avec succès.");
+                afficherBonAchat();
+            });
+
+            javafx.stage.Stage popup = new javafx.stage.Stage();
+            popup.setTitle("Confirmer le paiement");
+            popup.initModality(Modality.APPLICATION_MODAL);
+            popup.initOwner(vueBonCommande.getScene().getWindow());
+            popup.setScene(new javafx.scene.Scene(root));
+            popup.setResizable(false);
+            popup.showAndWait();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            afficherErreur("Impossible d'ouvrir la fenêtre : " + e.getMessage());
+        }
     }
 
     @FXML private void btnupdatebonCommande() { System.out.println("Modifier bon"); }
@@ -830,5 +879,56 @@ public class BonController {
                     + " — Total : " + (ba.getTotal() == null ? "0.00" : ba.getTotal()) + " DA"
                     + " — Articles : " + (ba.getNbArticles() == null ? 0 : ba.getNbArticles()));
         }
+    }
+
+    @FXML
+    private void ajouterVersementBonAchat() {
+        BonAchat sel = tableBonAchat.getSelectionModel().getSelectedItem();
+
+        if (sel == null) {
+            lblMessageAchat.setStyle("-fx-text-fill: #e74c3c;");
+            lblMessageAchat.setText("Sélectionnez un bon d'achat.");
+            return;
+        }
+
+        if (sel.getEstRegle() != null && sel.getEstRegle()) {
+            lblMessageAchat.setStyle("-fx-text-fill: #e67e22;");
+            lblMessageAchat.setText("⚠️ Ce bon est déjà entièrement réglé.");
+            return;
+        }
+
+        // Popup pour saisir le montant
+        TextInputDialog dialog = new TextInputDialog(
+                sel.getReste() == null ? "0.00" : sel.getReste().toPlainString());
+        dialog.setTitle("Ajouter un versement");
+        dialog.setHeaderText("Bon d'achat N° " + sel.getId()
+                + "\nReste à payer : " + sel.getReste() + " DA");
+        dialog.setContentText("Montant à verser (DA) :");
+
+        dialog.showAndWait().ifPresent(montantStr -> {
+            try {
+                BigDecimal montant = new BigDecimal(montantStr.trim().replaceAll("[^0-9.]", ""));
+
+                if (montant.compareTo(BigDecimal.ZERO) <= 0) {
+                    lblMessageAchat.setStyle("-fx-text-fill: #e74c3c;");
+                    lblMessageAchat.setText("❌ Le montant doit être > 0.");
+                    return;
+                }
+
+                boolean ok = BonAchatService.ajouterVersement(sel.getId(), montant);
+
+                if (ok) {
+                    lblMessageAchat.setStyle("-fx-text-fill: #27ae60;");
+                    lblMessageAchat.setText("✅ Versement de " + montant + " DA enregistré.");
+                    chargerTout();
+                } else {
+                    lblMessageAchat.setStyle("-fx-text-fill: #e74c3c;");
+                    lblMessageAchat.setText("❌ Erreur lors du versement.");
+                }
+            } catch (Exception e) {
+                lblMessageAchat.setStyle("-fx-text-fill: #e74c3c;");
+                lblMessageAchat.setText("❌ Montant invalide.");
+            }
+        });
     }
 }

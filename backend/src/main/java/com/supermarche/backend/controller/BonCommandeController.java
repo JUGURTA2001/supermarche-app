@@ -10,7 +10,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/bons-commande")
@@ -32,16 +34,23 @@ public class BonCommandeController {
     }
 
     // Conversion manuelle (pour les bons avec reste > 0)
+
+
+    /**
+     * Convertit un bon de commande en bon d'achat.
+     * POST /api/bons-commande/{id}/convertir?versement=XXX
+     */
     @PostMapping("/{id}/convertir")
-    public ResponseEntity<BonAchat> convertir(
+    public ResponseEntity<?> convertir(
             @PathVariable Integer id,
             @RequestParam(required = false) BigDecimal versement) {
-        return ResponseEntity.ok(service.convertirEnBonAchat(id, versement));
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Integer id) {
-        service.delete(id);
-        return ResponseEntity.noContent().build();
+        try {
+            BonAchat achat = service.convertirEnBonAchat(id, versement);
+            return ResponseEntity.ok(achat);
+        } catch (RuntimeException e) {
+            Map<String, Object> error = new HashMap<>();
+            error.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(error);
+        }
     }
 }

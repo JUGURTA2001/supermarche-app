@@ -8,8 +8,10 @@ import com.supermarche.backend.repository.DetailBonAchatRepository;
 import com.supermarche.backend.repository.FournisseurRepository;
 import com.supermarche.backend.repository.ProduitRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -63,5 +65,25 @@ public class BonAchatController {
         }
         dto.setDetails(details);
         return dto;
+    }
+
+    @Autowired private com.supermarche.backend.service.BonCommandeService bonCommandeService;
+
+    /**
+     * Ajoute un versement à un bon d'achat (paiement échelonné).
+     * POST /api/bons-achat/{id}/versement?montant=XXX
+     */
+    @PostMapping("/{id}/versement")
+    public ResponseEntity<?> ajouterVersement(
+            @PathVariable Integer id,
+            @RequestParam BigDecimal montant) {
+        try {
+            BonAchat updated = bonCommandeService.ajouterVersementBonAchat(id, montant);
+            return ResponseEntity.ok(updated);
+        } catch (RuntimeException e) {
+            java.util.Map<String, Object> error = new java.util.HashMap<>();
+            error.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(error);
+        }
     }
 }
