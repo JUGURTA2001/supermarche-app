@@ -84,4 +84,27 @@ public class BonCommandeService {
             return false;
         }
     }
+    /** GET /api/bons-commande/{id} → un bon avec ses lignes */
+    public static BonCommande getById(Integer id) {
+        try {
+            String json = ApiClient.get("/api/bons-commande/" + id);
+            return ApiClient.MAPPER.readValue(json, BonCommande.class);
+        } catch (Exception e) {
+            System.err.println("❌ Bon introuvable : " + e.getMessage());
+            return null;
+        }
+    }
+
+    /** PUT /api/bons-commande/{id} → modifier */
+    public static BonCommande update(Integer id, BonCommande bon) {
+        try {
+            String json = ApiClient.MAPPER.writeValueAsString(bon);
+            String reponse = ApiClient.put("/api/bons-commande/" + id, json);
+            return ApiClient.MAPPER.readValue(reponse, BonCommande.class);
+        } catch (Exception e) {
+            System.err.println("❌ Erreur modification bon : " + e.getMessage());
+            e.printStackTrace();
+            return null;
+        }
+    }
 }

@@ -8,7 +8,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import java.util.Map;
+import java.util.HashMap;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
@@ -49,6 +52,36 @@ public class BonCommandeController {
             return ResponseEntity.ok(achat);
         } catch (RuntimeException e) {
             Map<String, Object> error = new HashMap<>();
+            error.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(error);
+        }
+    }
+
+
+    /**
+     * Récupérer un bon de commande avec ses lignes.
+     * GET /api/bons-commande/{id}
+     */
+    @GetMapping("/{id}")
+    public ResponseEntity<BonCommandeDTO> getById(@PathVariable Integer id) {
+        BonCommandeDTO dto = service.getById(id);
+        if (dto == null) return ResponseEntity.notFound().build();
+        return ResponseEntity.ok(dto);
+    }
+
+    /**
+     * Modifier un bon de commande.
+     * PUT /api/bons-commande/{id}
+     */
+    @PutMapping("/{id}")
+    public ResponseEntity<?> update(
+            @PathVariable Integer id,
+            @RequestBody BonCommandeDTO dto) {
+        try {
+            BonCommande updated = service.modifierBonCommande(id, dto);
+            return ResponseEntity.ok(updated);
+        } catch (RuntimeException e) {
+            java.util.Map<String, Object> error = new java.util.HashMap<>();
             error.put("message", e.getMessage());
             return ResponseEntity.badRequest().body(error);
         }

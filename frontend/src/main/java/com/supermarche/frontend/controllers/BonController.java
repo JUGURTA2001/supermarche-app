@@ -88,10 +88,7 @@ public class BonController {
 
     // ============ VUE NOUVEAU BON ============
     @FXML private TextField numeroBon;
-
-    // ⭐ CHANGÉ : TextField au lieu de ComboBox<Fournisseur>
     @FXML private TextField infoforniseur;
-
     @FXML private TextField adressefournisseur;
     @FXML private DatePicker dateboncommande;
     @FXML private TextField rechercheproduit;
@@ -111,7 +108,7 @@ public class BonController {
     @FXML private TextField resteapaye;
     @FXML private TextField nbarticles;
 
-    // ⭐ Détails des lignes du bon sélectionné
+    // ============ DÉTAILS DES LIGNES BON COMMANDE ============
     @FXML private Label lblTitreLignes;
     @FXML private TableView<BonCommande.LigneBon> tableLignesBonCommande;
     @FXML private TableColumn<BonCommande.LigneBon, Integer> colLigneProduitId;
@@ -123,9 +120,19 @@ public class BonController {
     @FXML private TableColumn<BonCommande.LigneBon, BigDecimal> colLigneTva;
     @FXML private TableColumn<BonCommande.LigneBon, BigDecimal> colLigneMontant;
 
-    private final ObservableList<BonCommande.LigneBon> listeLignesSelectionnees = FXCollections.observableArrayList();
+    // ============ DÉTAILS DES LIGNES BON ACHAT ============
+    @FXML private Label lblTitreDetailsAchat;
+    @FXML private TableView<BonAchat.DetailLigne> tableDetailsAchat;
+    @FXML private TableColumn<BonAchat.DetailLigne, Integer> colDetailProduitId;
+    @FXML private TableColumn<BonAchat.DetailLigne, String>  colDetailProduitNom;
+    @FXML private TableColumn<BonAchat.DetailLigne, Integer> colDetailQuantite;
+    @FXML private TableColumn<BonAchat.DetailLigne, BigDecimal> colDetailPrixAchat;
+    @FXML private TableColumn<BonAchat.DetailLigne, BigDecimal> colDetailMontant;
 
     // ============ DONNÉES ============
+    private final ObservableList<BonCommande.LigneBon> listeLignesSelectionnees = FXCollections.observableArrayList();
+    private final ObservableList<BonAchat.DetailLigne> listeDetailsAchat = FXCollections.observableArrayList();
+
     private final ObservableList<BonCommande> listeBonsCommande = FXCollections.observableArrayList();
     private final ObservableList<BonAchat>    listeBonsAchat    = FXCollections.observableArrayList();
     private final ObservableList<Fournisseur> listeFournisseurs = FXCollections.observableArrayList();
@@ -134,14 +141,16 @@ public class BonController {
     private final ContextMenu popupProduits = new ContextMenu();
     private final ContextMenu popupFournisseurs = new ContextMenu();
 
-    // ⭐ Fournisseur actuellement sélectionné (remplace ComboBox.getValue())
     private Fournisseur fournisseurSelectionneCourant = null;
+    private Integer bonEnModificationId = null;
 
     // ============================================================
     // INITIALISATION
     // ============================================================
     @FXML
     private void initialize() {
+
+        // --- Détails Bon Achat ---
         if (tableDetailsAchat != null) {
             colDetailProduitId.setCellValueFactory(new PropertyValueFactory<>("produitId"));
             colDetailProduitNom.setCellValueFactory(new PropertyValueFactory<>("nomProduit"));
@@ -163,8 +172,7 @@ public class BonController {
                     (obs, oldBA, newBA) -> chargerDetailsAchat(newBA));
         }
 
-
-        // --- ⭐ Configuration du tableau des lignes ---
+        // --- Détails Bon Commande ---
         if (tableLignesBonCommande != null) {
             colLigneProduitId.setCellValueFactory(new PropertyValueFactory<>("produitId"));
             colLigneProduitNom.setCellValueFactory(new PropertyValueFactory<>("nomProduit"));
@@ -186,12 +194,12 @@ public class BonController {
             tableLignesBonCommande.setItems(listeLignesSelectionnees);
         }
 
-// --- ⭐ Listener : quand on clique sur un bon, on remplit les lignes ---
         if (tableBonCommande != null) {
             tableBonCommande.getSelectionModel().selectedItemProperty().addListener(
                     (obs, oldBon, newBon) -> afficherLignesDuBon(newBon));
         }
 
+        // --- Filtre numéro Bon ---
         if (numeroBon != null) {
             numeroBon.setTextFormatter(new TextFormatter<>(change -> {
                 if (change.getControlNewText().matches("[A-Za-z0-9\\-]*")) return change;
@@ -211,13 +219,11 @@ public class BonController {
         if (colregle != null) colregle.setCellValueFactory(c -> {
             BonCommande b = c.getValue();
             if (b.getEstConverti() != null && b.getEstConverti()) {
-                // Vérifier si entièrement réglé
                 if (b.getReste() != null && b.getReste().compareTo(BigDecimal.ZERO) == 0) {
                     return new SimpleStringProperty("✅ Réglé");
-                } else {
-                    BigDecimal reste = b.getReste() == null ? BigDecimal.ZERO : b.getReste();
-                    return new SimpleStringProperty("💳 Crédit : " + reste + " DA");
                 }
+                BigDecimal reste = b.getReste() == null ? BigDecimal.ZERO : b.getReste();
+                return new SimpleStringProperty("💳 Crédit : " + reste + " DA");
             }
             return new SimpleStringProperty("⏳ En attente");
         });
@@ -295,24 +301,15 @@ public class BonController {
             colMontant.setEditable(false);
         }
 
-        // --- 5. Charger les données ---
         chargerTout();
-
-        // --- 6. Recherche fournisseur (nouveau système, stable) ---
         configurerRechercheFournisseur();
-
-        // --- 7. Recherche produit ---
         configurerRechercheProduit();
 
-        // --- 8. Listener versement ---
         if (versement != null) {
             versement.textProperty().addListener((obs, o, n) -> recalculerTotaux());
         }
 
-        // --- 9. Préparer le formulaire ---
         preparerNouveauBon();
-
-        // --- 10. Vue par défaut ---
         afficherBonCommande();
     }
 
@@ -352,6 +349,8 @@ public class BonController {
     // PRÉPARER LE FORMULAIRE
     // ============================================================
     private void preparerNouveauBon() {
+        bonEnModificationId = null;
+
         if (numeroBon != null) numeroBon.setText(genererNumeroBon());
         if (dateboncommande != null) dateboncommande.setValue(LocalDate.now(ZONE_ALGER));
         if (rechercheproduit != null) rechercheproduit.clear();
@@ -383,29 +382,21 @@ public class BonController {
         if (lblTotalAchats != null)     lblTotalAchats.setText("Total : " + listeBonsAchat.size());
         if (lblTotalFournisseurs != null) lblTotalFournisseurs.setText("Total : " + listeFournisseurs.size());
         if (lblNbBons != null) lblNbBons.setText(listeBonsCommande.size() + " bon(s)");
-
-        System.out.println("✅ " + listeBonsCommande.size() + " bons chargés");
-        System.out.println("✅ " + listeFournisseurs.size() + " fournisseurs chargés");
     }
 
     // ============================================================
-    // ⭐ NOUVELLE RECHERCHE FOURNISSEUR (TextField + ContextMenu)
-    // Remplace le ComboBox éditable buggé
+    // RECHERCHE FOURNISSEUR
     // ============================================================
     private void configurerRechercheFournisseur() {
         if (infoforniseur == null) return;
-
         popupFournisseurs.setAutoHide(true);
 
         infoforniseur.textProperty().addListener((obs, oldVal, newVal) -> {
-            // Si le texte correspond exactement au fournisseur déjà sélectionné, ne rien faire
             if (fournisseurSelectionneCourant != null
                     && fournisseurSelectionneCourant.getNomSociete() != null
                     && fournisseurSelectionneCourant.getNomSociete().equals(newVal)) {
                 return;
             }
-
-            // Si le texte change après sélection -> on désélectionne
             fournisseurSelectionneCourant = null;
 
             if (newVal == null || newVal.isBlank()) {
@@ -442,7 +433,6 @@ public class BonController {
         infoforniseur.focusedProperty().addListener((obs, o, focused) -> {
             if (!focused) {
                 popupFournisseurs.hide();
-                // Si le texte tapé correspond exactement à un fournisseur existant, on le valide
                 if (fournisseurSelectionneCourant == null) {
                     String texte = infoforniseur.getText();
                     if (texte != null && !texte.isBlank()) {
@@ -471,7 +461,6 @@ public class BonController {
     // ============================================================
     private void configurerRechercheProduit() {
         if (rechercheproduit == null) return;
-
         popupProduits.setAutoHide(true);
 
         rechercheproduit.textProperty().addListener((obs, o, n) -> {
@@ -580,10 +569,7 @@ public class BonController {
             Parent root = loader.load();
 
             AjoutProduitController ctrl = loader.getController();
-            // Rafraîchir la table produits du bon après ajout
-            ctrl.setOnSuccess(() -> {
-                System.out.println("✅ Nouveau produit ajouté, prêt à être sélectionné.");
-            });
+            ctrl.setOnSuccess(() -> System.out.println("✅ Nouveau produit ajouté."));
 
             Stage popup = new Stage();
             popup.setTitle("Ajouter un produit");
@@ -619,9 +605,8 @@ public class BonController {
         }
 
         try {
-            javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(
-                    getClass().getResource("/views/confirmer-paiement.fxml"));
-            javafx.scene.Parent root = loader.load();
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/confirmer-paiement.fxml"));
+            Parent root = loader.load();
 
             ConfirmerPaiementController ctrl = loader.getController();
             ctrl.setBon(sel);
@@ -632,11 +617,11 @@ public class BonController {
                 afficherBonAchat();
             });
 
-            javafx.stage.Stage popup = new javafx.stage.Stage();
+            Stage popup = new Stage();
             popup.setTitle("Confirmer le paiement");
             popup.initModality(Modality.APPLICATION_MODAL);
             popup.initOwner(vueBonCommande.getScene().getWindow());
-            popup.setScene(new javafx.scene.Scene(root));
+            popup.setScene(new Scene(root));
             popup.setResizable(false);
             popup.showAndWait();
 
@@ -646,7 +631,77 @@ public class BonController {
         }
     }
 
-    @FXML private void btnupdatebonCommande() { System.out.println("Modifier bon"); }
+    @FXML
+    private void btnupdatebonCommande() {
+        BonCommande sel = tableBonCommande.getSelectionModel().getSelectedItem();
+
+        if (sel == null) {
+            lblMessageCommande.setStyle("-fx-text-fill: #e74c3c;");
+            lblMessageCommande.setText("Sélectionnez un bon à modifier.");
+            return;
+        }
+
+        if (sel.getEstConverti() != null && sel.getEstConverti()) {
+            lblMessageCommande.setStyle("-fx-text-fill: #e67e22;");
+            lblMessageCommande.setText("⚠️ Ce bon a déjà été converti. Impossible de le modifier.");
+            return;
+        }
+
+        BonCommande complet = BonCommandeService.getById(sel.getId());
+        if (complet == null) {
+            afficherErreur("Impossible de charger le bon.");
+            return;
+        }
+
+        bonEnModificationId = complet.getId();
+        chargerBonDansFormulaire(complet);
+        basculerVue(vueNouveauBon, btnNouveauBon);
+    }
+
+    private void chargerBonDansFormulaire(BonCommande bon) {
+        if (numeroBon != null && bon.getNumero() != null)
+            numeroBon.setText(bon.getNumero());
+
+        if (dateboncommande != null && bon.getDateBon() != null)
+            dateboncommande.setValue(bon.getDateBon());
+
+        if (bon.getFournisseurId() != null) {
+            listeFournisseurs.stream()
+                    .filter(f -> f.getId() != null && f.getId().equals(bon.getFournisseurId()))
+                    .findFirst()
+                    .ifPresent(f -> {
+                        fournisseurSelectionneCourant = f;
+                        if (infoforniseur != null) infoforniseur.setText(f.getNomSociete());
+                        if (adressefournisseur != null)
+                            adressefournisseur.setText(f.getAdresse() == null ? "" : f.getAdresse());
+                    });
+        }
+
+        if (versement != null) {
+            BigDecimal v = bon.getVersement() == null ? BigDecimal.ZERO : bon.getVersement();
+            versement.setText(v.toPlainString());
+        }
+
+        listeProduits.clear();
+        if (bon.getLignes() != null) {
+            for (BonCommande.LigneBon ligne : bon.getLignes()) {
+                Produit p = new Produit();
+                p.setId(ligne.getProduitId());
+                p.setNom(ligne.getNomProduit());
+                p.setQteInitiale(ligne.getQuantite());
+                p.setPrixAchat(ligne.getPrixAchat());
+                p.setPrixGros(ligne.getPrixGros());
+                p.setPrixDetail(ligne.getPrixDetail());
+                p.setTva(ligne.getTva());
+                listeProduits.add(p);
+            }
+        }
+
+        recalculerTotaux();
+
+        lblMessageCommande.setStyle("-fx-text-fill: #3498db;");
+        lblMessageCommande.setText("✏️ Modification du bon N° " + bon.getId());
+    }
 
     @FXML private void supprimerBon() {
         BonCommande sel = tableBonCommande.getSelectionModel().getSelectedItem();
@@ -693,7 +748,6 @@ public class BonController {
         }
     }
 
-    // ⭐ Gardé pour compatibilité si le FXML l'appelle encore (Enter dans le champ)
     @FXML private void fournisseurSelectionne() {
         String texte = infoforniseur.getText();
         if (texte == null || texte.isBlank()) return;
@@ -713,7 +767,6 @@ public class BonController {
     @FXML
     private void enregistrerBonCommande() {
 
-        // ⭐ Récupérer le fournisseur sélectionné (plus de ComboBox.getValue())
         Fournisseur fournisseur = fournisseurSelectionneCourant;
 
         if (fournisseur == null) {
@@ -732,7 +785,10 @@ public class BonController {
         }
 
         LocalDate date = dateboncommande.getValue();
-        if (date == null) { afficherErreur("Sélectionnez une date."); return; }
+        if (date == null) {
+            afficherErreur("Sélectionnez une date.");
+            return;
+        }
 
         if (listeProduits.isEmpty()) {
             afficherErreur("Ajoutez au moins un produit.");
@@ -758,8 +814,9 @@ public class BonController {
 
         BigDecimal versementValue = BigDecimal.ZERO;
         if (versement.getText() != null && !versement.getText().isBlank()) {
-            try { versementValue = new BigDecimal(versement.getText().trim()); }
-            catch (NumberFormatException e) {
+            try {
+                versementValue = new BigDecimal(versement.getText().trim());
+            } catch (NumberFormatException e) {
                 afficherErreur("Le versement doit être un nombre valide.");
                 return;
             }
@@ -781,24 +838,64 @@ public class BonController {
         }
 
         try {
-            BonCommande saved = BonCommandeService.create(
-                    numero, fournisseur, date, versementValue, listeProduits);
+            BonCommande saved;
 
-            if (saved == null) {
-                afficherErreur("Erreur lors de l'enregistrement (vérifiez le backend).");
-                return;
+            if (bonEnModificationId != null) {
+                BonCommande dto = new BonCommande();
+                dto.setNumero(numero);
+                dto.setFournisseurId(fournisseur.getId());
+                dto.setDateBon(date);
+                dto.setVersement(versementValue);
+
+                java.util.List<BonCommande.LigneBon> lignes = new java.util.ArrayList<>();
+                for (Produit p : listeProduits) {
+                    BonCommande.LigneBon l = new BonCommande.LigneBon();
+                    l.setProduitId(p.getId());
+                    l.setQuantite(p.getQteInitiale());
+                    l.setPrixAchat(p.getPrixAchat());
+                    l.setPrixGros(p.getPrixGros());
+                    l.setPrixDetail(p.getPrixDetail());
+                    l.setTva(p.getTva());
+                    lignes.add(l);
+                }
+                dto.setLignes(lignes);
+
+                saved = BonCommandeService.update(bonEnModificationId, dto);
+
+                if (saved == null) {
+                    afficherErreur("Erreur lors de la modification.");
+                    return;
+                }
+
+                lblMessageCommande.setStyle("-fx-text-fill: #27ae60;");
+                lblMessageCommande.setText("✅ Bon N° " + bonEnModificationId + " modifié.");
+
+                Alert ok = new Alert(Alert.AlertType.INFORMATION);
+                ok.setTitle("Succès");
+                ok.setHeaderText(null);
+                ok.setContentText("Bon N° " + bonEnModificationId + " modifié avec succès.");
+                ok.showAndWait();
+
+            } else {
+                saved = BonCommandeService.create(
+                        numero, fournisseur, date, versementValue, listeProduits);
+
+                if (saved == null) {
+                    afficherErreur("Erreur lors de l'enregistrement (vérifiez le backend).");
+                    return;
+                }
+
+                lblMessageCommande.setStyle("-fx-text-fill: #27ae60;");
+                lblMessageCommande.setText("✅ Bon N° " + saved.getId() + " enregistré.");
+
+                Alert ok = new Alert(Alert.AlertType.INFORMATION);
+                ok.setTitle("Succès");
+                ok.setHeaderText(null);
+                ok.setContentText("Bon N° " + saved.getId()
+                        + " enregistré.\nTotal : " + saved.getTotal()
+                        + " DA — Reste : " + saved.getReste() + " DA");
+                ok.showAndWait();
             }
-
-            lblMessageCommande.setStyle("-fx-text-fill: #27ae60;");
-            lblMessageCommande.setText("✅ Bon N° " + saved.getId() + " enregistré.");
-
-            Alert ok = new Alert(Alert.AlertType.INFORMATION);
-            ok.setTitle("Succès");
-            ok.setHeaderText(null);
-            ok.setContentText("Bon N° " + saved.getId()
-                    + " enregistré.\nTotal : " + saved.getTotal()
-                    + " DA — Reste : " + saved.getReste() + " DA");
-            ok.showAndWait();
 
             chargerTout();
             preparerNouveauBon();
@@ -821,10 +918,9 @@ public class BonController {
         alert.showAndWait();
     }
 
-
-    /**
-     * Affiche les lignes (produits) du bon de commande sélectionné.
-     */
+    // ============================================================
+    // AFFICHER LES LIGNES DU BON COMMANDE
+    // ============================================================
     private void afficherLignesDuBon(BonCommande bon) {
         listeLignesSelectionnees.clear();
 
@@ -843,23 +939,12 @@ public class BonController {
 
         if (bon.getLignes() != null && !bon.getLignes().isEmpty()) {
             listeLignesSelectionnees.setAll(bon.getLignes());
-        } else {
-            System.out.println("⚠️ Ce bon n'a pas de lignes ou elles ne sont pas chargées.");
         }
     }
 
-    @FXML private Label lblTitreDetailsAchat;
-    @FXML private TableView<BonAchat.DetailLigne> tableDetailsAchat;
-    @FXML private TableColumn<BonAchat.DetailLigne, Integer> colDetailProduitId;
-    @FXML private TableColumn<BonAchat.DetailLigne, String>  colDetailProduitNom;
-    @FXML private TableColumn<BonAchat.DetailLigne, Integer> colDetailQuantite;
-    @FXML private TableColumn<BonAchat.DetailLigne, BigDecimal> colDetailPrixAchat;
-    @FXML private TableColumn<BonAchat.DetailLigne, BigDecimal> colDetailMontant;
-
-    private final ObservableList<BonAchat.DetailLigne> listeDetailsAchat = FXCollections.observableArrayList();
-
-
-
+    // ============================================================
+    // DÉTAILS DU BON D'ACHAT
+    // ============================================================
     private void chargerDetailsAchat(BonAchat ba) {
         listeDetailsAchat.clear();
         if (ba == null) {
@@ -868,7 +953,6 @@ public class BonController {
             return;
         }
 
-        // Appel API pour récupérer les détails
         BonAchat complet = BonAchatService.getById(ba.getId());
         if (complet != null && complet.getDetails() != null) {
             listeDetailsAchat.setAll(complet.getDetails());
@@ -881,6 +965,9 @@ public class BonController {
         }
     }
 
+    // ============================================================
+    // AJOUTER UN VERSEMENT
+    // ============================================================
     @FXML
     private void ajouterVersementBonAchat() {
         BonAchat sel = tableBonAchat.getSelectionModel().getSelectedItem();
@@ -897,7 +984,6 @@ public class BonController {
             return;
         }
 
-        // Popup pour saisir le montant
         TextInputDialog dialog = new TextInputDialog(
                 sel.getReste() == null ? "0.00" : sel.getReste().toPlainString());
         dialog.setTitle("Ajouter un versement");

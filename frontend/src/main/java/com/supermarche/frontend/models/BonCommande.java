@@ -9,6 +9,7 @@ import java.util.List;
 public class BonCommande {
 
     private Integer id;
+    private String numero;             // ⭐ AJOUTER CE CHAMP
     private Integer fournisseurId;
     private String nomFournisseur;
     private LocalDate dateBon;
@@ -22,9 +23,14 @@ public class BonCommande {
 
     public BonCommande() {}
 
-    // Getters / Setters
+    // ===== Getters / Setters =====
     public Integer getId() { return id; }
     public void setId(Integer id) { this.id = id; }
+
+    // ⭐ AJOUTER CE GETTER
+    public String getNumero() { return numero; }
+    // ⭐ AJOUTER CE SETTER
+    public void setNumero(String numero) { this.numero = numero; }
 
     public Integer getFournisseurId() { return fournisseurId; }
     public void setFournisseurId(Integer fournisseurId) { this.fournisseurId = fournisseurId; }
@@ -56,7 +62,9 @@ public class BonCommande {
     public List<LigneBon> getLignes() { return lignes; }
     public void setLignes(List<LigneBon> lignes) { this.lignes = lignes; }
 
-    // ============ Classe interne LigneBon ============
+    // ============================================================
+    // CLASSE INTERNE : LigneBon
+    // ============================================================
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class LigneBon {
         private Integer produitId;

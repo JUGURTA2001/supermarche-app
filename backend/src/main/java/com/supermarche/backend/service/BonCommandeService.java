@@ -38,7 +38,6 @@ public class BonCommandeService {
         fournisseurRepository.findById(dto.getFournisseurId())
                 .orElseThrow(() -> new RuntimeException("Fournisseur introuvable."));
 
-        // Calcul total + nb articles
         BigDecimal total = BigDecimal.ZERO;
         int nbArticles = 0;
         for (BonCommandeDTO.LigneBonDTO l : dto.getLignes()) {
@@ -62,7 +61,6 @@ public class BonCommandeService {
 
         BigDecimal reste = total.subtract(versement);
 
-        // Entête du bon
         BonCommande bon = new BonCommande();
         bon.setNumero(dto.getNumero());
         bon.setFournisseurId(dto.getFournisseurId());
@@ -77,7 +75,6 @@ public class BonCommandeService {
 
         BonCommande savedBon = bonCommandeRepository.save(bon);
 
-        // Lignes du bon
         List<BonCommandeProduit> lignesSauvees = new ArrayList<>();
         for (BonCommandeDTO.LigneBonDTO l : dto.getLignes()) {
             BonCommandeProduit bcp = new BonCommandeProduit();
@@ -93,7 +90,6 @@ public class BonCommandeService {
             lignesSauvees.add(bcp);
         }
 
-        // Si reste == 0 → création automatique du bon d'achat
         if (reste.compareTo(BigDecimal.ZERO) == 0) {
             System.out.println("💰 Reste = 0 → création automatique du bon d'achat...");
             creerBonAchatDepuisLignes(savedBon, total, versement, nbArticles, lignesSauvees);
@@ -105,7 +101,7 @@ public class BonCommandeService {
     }
 
     // ============================================================
-    // CONVERSION MANUELLE (avec paiement partiel accepté)
+    // CONVERSION MANUELLE
     // ============================================================
     @Transactional
     public BonAchat convertirEnBonAchat(Integer bonCommandeId, BigDecimal versementSupplementaire) {
@@ -187,7 +183,7 @@ public class BonCommandeService {
     }
 
     // ============================================================
-    // AJOUTER UN VERSEMENT (paiement échelonné)
+    // AJOUTER UN VERSEMENT
     // ============================================================
     @Transactional
     public BonAchat ajouterVersementBonAchat(Integer bonAchatId, BigDecimal versement) {
@@ -233,6 +229,109 @@ public class BonCommandeService {
 
         return achat;
     }
+
+    // ============================================================
+    // RÉCUPÉRER UN BON PAR ID
+    // ============================================================
+    public BonCommandeDTO getById(Integer id) {
+        return bonCommandeRepository.findById(id)
+                .map(this::toDTO)
+                .orElse(null);
+    }
+
+    // ============================================================
+    // MODIFIER UN BON DE COMMANDE
+    // ============================================================
+    // ============================================================
+// MODIFIER UN BON DE COMMANDE
+// ============================================================
+    @Transactional
+    public BonCommande modifierBonCommande(Integer bonCommandeId, BonCommandeDTO dto) {
+
+        BonCommande bon = bonCommandeRepository.findById(bonCommandeId)
+                .orElseThrow(() -> new RuntimeException("Bon introuvable : " + bonCommandeId));
+
+        if (bon.getEstConverti() != null && bon.getEstConverti() == 1) {
+            throw new RuntimeException("Ce bon a déjà été converti. Impossible de le modifier.");
+        }
+
+        if (dto.getFournisseurId() == null)
+            throw new RuntimeException("Fournisseur obligatoire.");
+        if (dto.getLignes() == null || dto.getLignes().isEmpty())
+            throw new RuntimeException("Ajoutez au moins un produit.");
+
+        fournisseurRepository.findById(dto.getFournisseurId())
+                .orElseThrow(() -> new RuntimeException("Fournisseur introuvable."));
+
+        // Recalculer le total
+        BigDecimal total = BigDecimal.ZERO;
+        int nbArticles = 0;
+        for (BonCommandeDTO.LigneBonDTO l : dto.getLignes()) {
+            if (l.getProduitId() == null)
+                throw new RuntimeException("Produit manquant.");
+            if (l.getQuantite() == null || l.getQuantite() <= 0)
+                throw new RuntimeException("Quantité > 0 requise.");
+            if (l.getPrixAchat() == null || l.getPrixAchat().compareTo(BigDecimal.ZERO) <= 0)
+                throw new RuntimeException("Prix d'achat > 0 requis.");
+
+            total = total.add(l.getPrixAchat().multiply(BigDecimal.valueOf(l.getQuantite())));
+            nbArticles += l.getQuantite();
+        }
+
+        BigDecimal versement = dto.getVersement() == null ? BigDecimal.ZERO : dto.getVersement();
+        if (versement.compareTo(BigDecimal.ZERO) < 0)
+            throw new RuntimeException("Le versement ne peut pas être négatif.");
+        if (versement.compareTo(total) > 0)
+            throw new RuntimeException("Le versement ne peut pas dépasser le total.");
+
+        BigDecimal reste = total.subtract(versement);
+
+        // Mise à jour de l'entête
+        bon.setNumero(dto.getNumero());
+        bon.setFournisseurId(dto.getFournisseurId());
+        bon.setDateBon(dto.getDateBon());
+        bon.setTotal(total);
+        bon.setVersement(versement);
+        bon.setReste(reste);
+        bon.setNbArticles(nbArticles);
+        bon.setEstRegle(reste.compareTo(BigDecimal.ZERO) == 0);
+        bonCommandeRepository.save(bon);
+
+        // Supprimer les anciennes lignes
+        bonCommandeProduitRepository.deleteByBonId(bon.getId());
+
+        // Recréer les nouvelles lignes
+        List<BonCommandeProduit> lignesSauvees = new ArrayList<>();
+        for (BonCommandeDTO.LigneBonDTO l : dto.getLignes()) {
+            BonCommandeProduit bcp = new BonCommandeProduit();
+            bcp.setBonId(bon.getId());
+            bcp.setProduitId(l.getProduitId());
+            bcp.setQuantite(l.getQuantite());
+            bcp.setPrixAchat(l.getPrixAchat());
+            bcp.setPrixGros(l.getPrixGros() != null ? l.getPrixGros() : l.getPrixAchat());
+            bcp.setPrixDetail(l.getPrixDetail() != null ? l.getPrixDetail() : l.getPrixAchat());
+            bcp.setTva(l.getTva() != null ? l.getTva() : new BigDecimal("20.00"));
+            bcp.setEstRecu(false);
+            bonCommandeProduitRepository.save(bcp);
+            lignesSauvees.add(bcp);
+        }
+
+        // ============================================================
+        // ⭐ SI RESTE == 0 → CRÉER AUTOMATIQUEMENT LE BON D'ACHAT
+        // ============================================================
+        if (reste.compareTo(BigDecimal.ZERO) == 0) {
+            System.out.println("💰 [MODIF] Reste = 0 → création automatique du bon d'achat...");
+            creerBonAchatDepuisLignes(bon, total, versement, nbArticles, lignesSauvees);
+        } else {
+            System.out.println("⏳ [MODIF] Reste = " + reste + " → pas de bon d'achat.");
+        }
+
+        System.out.println("✅ Bon " + bon.getId() + " modifié | Total = " + total
+                + " | Versé = " + versement + " | Reste = " + reste);
+
+        return bon;
+    }
+
 
     // ============================================================
     // LISTE
