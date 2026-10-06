@@ -8,6 +8,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
 import java.math.BigDecimal;
+import java.net.http.HttpResponse;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -16,7 +17,9 @@ import java.util.Map;
 
 public class BonCommandeService {
 
-    /** GET /api/bons-commande */
+    // ============================================================
+    // LISTE
+    // ============================================================
     public static ObservableList<BonCommande> getAll() {
         try {
             String json = ApiClient.get("/api/bons-commande");
@@ -29,14 +32,28 @@ public class BonCommandeService {
         }
     }
 
-    /** POST /api/bons-commande ⭐ CRÉATION */
+    // ============================================================
+    // DÉTAIL
+    // ============================================================
+    public static BonCommande getById(Integer id) {
+        try {
+            String json = ApiClient.get("/api/bons-commande/" + id);
+            return ApiClient.MAPPER.readValue(json, BonCommande.class);
+        } catch (Exception e) {
+            System.err.println("❌ Bon introuvable : " + e.getMessage());
+            return null;
+        }
+    }
+
+    // ============================================================
+    // CRÉATION
+    // ============================================================
     public static BonCommande create(String numero,
                                      Fournisseur fournisseur,
                                      LocalDate dateBon,
                                      BigDecimal versement,
                                      List<Produit> produits) {
         try {
-            // --- Construire le payload JSON ---
             Map<String, Object> payload = new HashMap<>();
             payload.put("numero", numero);
             payload.put("fournisseurId", fournisseur.getId());
@@ -57,8 +74,6 @@ public class BonCommandeService {
             payload.put("lignes", lignes);
 
             String json = ApiClient.MAPPER.writeValueAsString(payload);
-
-            // --- POST ---
             String response = ApiClient.post("/api/bons-commande", json);
             return ApiClient.MAPPER.readValue(response, BonCommande.class);
 
@@ -69,11 +84,29 @@ public class BonCommandeService {
         }
     }
 
-    public static boolean convertir(Integer bonCommandeId, java.math.BigDecimal versementSupplementaire) {
+    // ============================================================
+    // MODIFICATION
+    // ============================================================
+    public static BonCommande update(Integer id, BonCommande bon) {
+        try {
+            String json = ApiClient.MAPPER.writeValueAsString(bon);
+            String reponse = ApiClient.put("/api/bons-commande/" + id, json);
+            return ApiClient.MAPPER.readValue(reponse, BonCommande.class);
+        } catch (Exception e) {
+            System.err.println("❌ Erreur modification bon : " + e.getMessage());
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    // ============================================================
+    // CONVERSION
+    // ============================================================
+    public static boolean convertir(Integer bonCommandeId, BigDecimal versementSupplementaire) {
         try {
             String url = "/api/bons-commande/" + bonCommandeId + "/convertir";
             if (versementSupplementaire != null
-                    && versementSupplementaire.compareTo(java.math.BigDecimal.ZERO) > 0) {
+                    && versementSupplementaire.compareTo(BigDecimal.ZERO) > 0) {
                 url += "?versement=" + versementSupplementaire.toPlainString();
             }
             ApiClient.post(url, "");
@@ -84,27 +117,38 @@ public class BonCommandeService {
             return false;
         }
     }
-    /** GET /api/bons-commande/{id} → un bon avec ses lignes */
-    public static BonCommande getById(Integer id) {
-        try {
-            String json = ApiClient.get("/api/bons-commande/" + id);
-            return ApiClient.MAPPER.readValue(json, BonCommande.class);
-        } catch (Exception e) {
-            System.err.println("❌ Bon introuvable : " + e.getMessage());
-            return null;
-        }
-    }
 
-    /** PUT /api/bons-commande/{id} → modifier */
-    public static BonCommande update(Integer id, BonCommande bon) {
+    // ============================================================
+    // ⭐ SUPPRESSION
+    // ============================================================
+    /**
+     * @return null si succès, sinon le message d'erreur renvoyé par le backend
+     */
+    public static String delete(Integer id) {
         try {
-            String json = ApiClient.MAPPER.writeValueAsString(bon);
-            String reponse = ApiClient.put("/api/bons-commande/" + id, json);
-            return ApiClient.MAPPER.readValue(reponse, BonCommande.class);
+            HttpResponse<String> resp = ApiClient.deleteRaw("/api/bons-commande/" + id);
+
+            // 204 No Content  ou  200 OK → succès
+            if (resp.statusCode() == 204 || resp.statusCode() == 200) {
+                return null;
+            }
+
+            // 409 / 404 / 500 → le backend renvoie {"message": "..."}
+            String body = resp.body();
+            if (body != null && !body.isBlank()) {
+                try {
+                    var node = ApiClient.MAPPER.readTree(body);
+                    if (node.has("message")) {
+                        return node.get("message").asText();
+                    }
+                } catch (Exception ignored) {}
+                return body;
+            }
+            return "Erreur HTTP " + resp.statusCode();
+
         } catch (Exception e) {
-            System.err.println("❌ Erreur modification bon : " + e.getMessage());
             e.printStackTrace();
-            return null;
+            return "Impossible de contacter le serveur : " + e.getMessage();
         }
     }
 }

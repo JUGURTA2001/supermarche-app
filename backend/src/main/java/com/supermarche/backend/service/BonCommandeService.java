@@ -22,6 +22,8 @@ public class BonCommandeService {
     @Autowired private FournisseurRepository fournisseurRepository;
     @Autowired private ProduitRepository produitRepository;
 
+
+
     // ============================================================
     // CRÉATION DU BON DE COMMANDE
     // ============================================================
@@ -347,10 +349,42 @@ public class BonCommandeService {
     // ============================================================
     // SUPPRESSION
     // ============================================================
+    // ============================================================
+// SUPPRESSION D'UN BON DE COMMANDE
+// ============================================================
+    // ============================================================
+    // SUPPRESSION
+    // ============================================================
+    // ============================================================
+// SUPPRESSION D'UN BON DE COMMANDE
+// ============================================================
     @Transactional
     public void delete(Integer id) {
+
+        // 1) Récupérer le bon
+        BonCommande bon = bonCommandeRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Bon de commande introuvable : " + id));
+
+        // 2) Règle métier : interdit si déjà converti
+        if (bon.getEstConverti() != null && bon.getEstConverti() == 1) {
+            throw new RuntimeException(
+                    "Ce bon a déjà été converti en bon d'achat. Suppression interdite.");
+        }
+
+        // 3) Sécurité : si un bon d'achat existe malgré tout, on bloque
+        if (bon.getBonAchatId() != null) {
+            throw new RuntimeException(
+                    "Ce bon est lié au bon d'achat N° " + bon.getBonAchatId()
+                            + ". Supprimez d'abord le bon d'achat.");
+        }
+
+        // 4) Supprimer les lignes filles
         bonCommandeProduitRepository.deleteByBonId(id);
+
+        // 5) Supprimer le bon parent
         bonCommandeRepository.deleteById(id);
+
+        System.out.println("🗑️ Bon de commande N° " + id + " supprimé (lignes + entête).");
     }
 
     // ============================================================

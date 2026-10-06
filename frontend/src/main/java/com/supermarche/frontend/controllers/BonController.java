@@ -703,22 +703,56 @@ public class BonController {
         lblMessageCommande.setText("✏️ Modification du bon N° " + bon.getId());
     }
 
-    @FXML private void supprimerBon() {
+    // ============================================================
+    // ⭐ SUPPRESSION (UNIQUE — l'ancienne méthode a été retirée)
+    // ============================================================
+    @FXML
+    private void supprimerBon() {
+
         BonCommande sel = tableBonCommande.getSelectionModel().getSelectedItem();
+
         if (sel == null) {
             lblMessageCommande.setStyle("-fx-text-fill: #e74c3c;");
             lblMessageCommande.setText("Sélectionnez un bon à supprimer.");
             return;
         }
 
-        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION,
-                "Supprimer le bon N° " + sel.getId() + " ?",
-                ButtonType.YES, ButtonType.NO);
-        confirm.showAndWait().ifPresent(r -> {
-            if (r == ButtonType.YES) {
+        if (sel.getEstConverti() != null && sel.getEstConverti()) {
+            lblMessageCommande.setStyle("-fx-text-fill: #e67e22;");
+            lblMessageCommande.setText("⚠️ Ce bon a déjà été converti. Suppression impossible.");
+            return;
+        }
+
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+        confirm.setTitle("Confirmation");
+        confirm.setHeaderText(null);
+        confirm.setContentText("Supprimer définitivement le bon N° " + sel.getId() + " ?");
+        confirm.getButtonTypes().setAll(ButtonType.YES, ButtonType.NO);
+
+        confirm.showAndWait().ifPresent(rep -> {
+            if (rep != ButtonType.YES) return;
+
+            String erreur = BonCommandeService.delete(sel.getId());
+
+            if (erreur == null) {
+                // ✅ Succès
                 listeBonsCommande.remove(sel);
+                listeLignesSelectionnees.clear();
+                chargerTout();
+
                 lblMessageCommande.setStyle("-fx-text-fill: #27ae60;");
-                lblMessageCommande.setText("✅ Bon supprimé.");
+                lblMessageCommande.setText("✅ Bon N° " + sel.getId() + " supprimé.");
+
+            } else {
+                // ❌ Message d'erreur du backend
+                lblMessageCommande.setStyle("-fx-text-fill: #e74c3c;");
+                lblMessageCommande.setText("❌ " + erreur);
+
+                Alert err = new Alert(Alert.AlertType.ERROR);
+                err.setTitle("Suppression impossible");
+                err.setHeaderText(null);
+                err.setContentText(erreur);
+                err.showAndWait();
             }
         });
     }

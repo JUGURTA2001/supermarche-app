@@ -8,10 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-import java.util.Map;
-import java.util.HashMap;
+
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
@@ -22,46 +19,20 @@ import java.util.Map;
 @CrossOrigin(origins = "*")
 public class BonCommandeController {
 
-    @Autowired private BonCommandeService service;
+    @Autowired
+    private BonCommandeService service;
 
+    // ============================================================
+    // LISTE
+    // ============================================================
     @GetMapping
     public List<BonCommandeDTO> getAll() {
         return service.getAll();
     }
 
-    // ⭐ Création : crée bon de commande + bon d'achat auto si reste=0
-    @PostMapping
-    public ResponseEntity<BonCommande> create(@RequestBody BonCommandeDTO dto) {
-        BonCommande saved = service.creerBonCommande(dto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(saved);
-    }
-
-    // Conversion manuelle (pour les bons avec reste > 0)
-
-
-    /**
-     * Convertit un bon de commande en bon d'achat.
-     * POST /api/bons-commande/{id}/convertir?versement=XXX
-     */
-    @PostMapping("/{id}/convertir")
-    public ResponseEntity<?> convertir(
-            @PathVariable Integer id,
-            @RequestParam(required = false) BigDecimal versement) {
-        try {
-            BonAchat achat = service.convertirEnBonAchat(id, versement);
-            return ResponseEntity.ok(achat);
-        } catch (RuntimeException e) {
-            Map<String, Object> error = new HashMap<>();
-            error.put("message", e.getMessage());
-            return ResponseEntity.badRequest().body(error);
-        }
-    }
-
-
-    /**
-     * Récupérer un bon de commande avec ses lignes.
-     * GET /api/bons-commande/{id}
-     */
+    // ============================================================
+    // DÉTAIL
+    // ============================================================
     @GetMapping("/{id}")
     public ResponseEntity<BonCommandeDTO> getById(@PathVariable Integer id) {
         BonCommandeDTO dto = service.getById(id);
@@ -69,19 +40,57 @@ public class BonCommandeController {
         return ResponseEntity.ok(dto);
     }
 
-    /**
-     * Modifier un bon de commande.
-     * PUT /api/bons-commande/{id}
-     */
+    // ============================================================
+    // CRÉATION
+    // ============================================================
+    @PostMapping
+    public ResponseEntity<BonCommande> create(@RequestBody BonCommandeDTO dto) {
+        BonCommande saved = service.creerBonCommande(dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(saved);
+    }
+
+    // ============================================================
+    // MODIFICATION
+    // ============================================================
     @PutMapping("/{id}")
-    public ResponseEntity<?> update(
-            @PathVariable Integer id,
-            @RequestBody BonCommandeDTO dto) {
+    public ResponseEntity<?> update(@PathVariable Integer id,
+                                    @RequestBody BonCommandeDTO dto) {
         try {
             BonCommande updated = service.modifierBonCommande(id, dto);
             return ResponseEntity.ok(updated);
         } catch (RuntimeException e) {
-            java.util.Map<String, Object> error = new java.util.HashMap<>();
+            Map<String, Object> error = new HashMap<>();
+            error.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(error);
+        }
+    }
+
+    // ============================================================
+    // ⭐ SUPPRESSION
+    // ============================================================
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> delete(@PathVariable Integer id) {
+        try {
+            service.delete(id);
+            return ResponseEntity.noContent().build();         // 204
+        } catch (RuntimeException e) {
+            Map<String, Object> error = new HashMap<>();
+            error.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(error); // 409
+        }
+    }
+
+    // ============================================================
+    // CONVERSION MANUELLE
+    // ============================================================
+    @PostMapping("/{id}/convertir")
+    public ResponseEntity<?> convertir(@PathVariable Integer id,
+                                       @RequestParam(required = false) BigDecimal versement) {
+        try {
+            BonAchat achat = service.convertirEnBonAchat(id, versement);
+            return ResponseEntity.ok(achat);
+        } catch (RuntimeException e) {
+            Map<String, Object> error = new HashMap<>();
             error.put("message", e.getMessage());
             return ResponseEntity.badRequest().body(error);
         }

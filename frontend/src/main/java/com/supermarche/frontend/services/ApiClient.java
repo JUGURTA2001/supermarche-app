@@ -81,6 +81,20 @@ public class ApiClient {
     }
 
     // ============================================================
+    // ⭐⭐ DELETE RAW — retourne la réponse brute (code + body)
+    // Utilisée par BonCommandeService.delete() pour lire le message
+    // d'erreur renvoyé par le backend (409 Conflict, etc.)
+    // ============================================================
+    public static HttpResponse<String> deleteRaw(String path) throws Exception {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + path))
+                .header("Accept", "application/json")
+                .DELETE()
+                .build();
+        return HTTP.send(request, HttpResponse.BodyHandlers.ofString());
+    }
+
+    // ============================================================
     // ⭐ POST MULTIPART — utilisée à la ligne 87 de ProduitService
     // ============================================================
     public static String postProduitMultipart(String produitJson, File photo) throws Exception {
